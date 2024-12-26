@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { AlertCircle, Search } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ImageUploader from '../components/ImageUploader';
@@ -10,7 +10,7 @@ interface HomePageProps {
   apiUrl?: string;
 }
 
-const HomePage = ({ apiUrl }: HomePageProps) => {
+export default function HomePage({ apiUrl }: HomePageProps) {
   const {
     uploadImage,
     startVisualSearch,

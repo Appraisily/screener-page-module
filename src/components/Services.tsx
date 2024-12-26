@@ -72,14 +72,14 @@ const antiqueTools = [
     step: 4
   }
 ];
+import type { ItemType } from '../types';
 
 interface ServicesProps {
-  activeService?: string;
-  itemType: 'Art' | 'Antique' | null;
+  itemType: ItemType;
   currentStep: number;
 }
 
-const Services: React.FC<ServicesProps> = ({ activeService, itemType, currentStep }) => {
+const Services = ({ itemType, currentStep }: ServicesProps) => {
   const tools = itemType === 'Art' ? artTools : itemType === 'Antique' ? antiqueTools : [];
 
   if (!itemType) return null;

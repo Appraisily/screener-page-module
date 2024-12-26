@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -6,7 +6,7 @@ import ResultsDisplay from '../components/ResultsDisplay';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
-const AnalyzePage = () => {
+export default function AnalyzePage() {
   const { sessionId } = useParams<{ sessionId: string }>();
 
   const {

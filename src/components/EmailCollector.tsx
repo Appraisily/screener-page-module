@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, ArrowRight } from 'lucide-react';
 
 interface EmailCollectorProps {
-  onSubmit: (email: string) => void;
+  onSubmit: (email: string) => Promise<boolean>;
   isLoading?: boolean;
 }
 
@@ -15,7 +15,7 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
     return re.test(email);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -29,7 +29,11 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
       return;
     }
 
-    onSubmit(email);
+    try {
+      await onSubmit(email);
+    } catch (err) {
+      setError('Failed to submit email. Please try again.');
+    }
   };
 
   return (
@@ -44,7 +48,7 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
           <p className="text-sm text-gray-600">
             Enter your email to receive your complete artwork analysis report, including:
           </p>
-          <ul className="mt-2 space-y-1 list-disc list-inside">
+          <ul className="mt-2 space-y-1 list-disc list-inside text-sm text-gray-600">
             <li>Detailed artwork evaluation</li>
             <li>Market value insights</li>
             <li>Authentication guidance</li>

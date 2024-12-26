@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import VisualSearchPanel from './VisualSearchPanel';
@@ -10,11 +9,10 @@ export interface ArtScreenerProps {
   sessionId?: string;
 }
 
-const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSessionId }) => {
+const ArtScreener = ({ apiUrl, sessionId: initialSessionId }: ArtScreenerProps) => {
   const {
     uploadImage,
     startVisualSearch,
-    testVisualSearch,
     submitEmail,
     isUploading,
     isSearching,
@@ -85,17 +83,6 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSes
             />
           )}
           
-          {/* Test Button - Always visible for debugging */}
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={() => testVisualSearch('5beeda96-1ab6-49a5-b689-58af1bc8768d')}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 
-                       bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <span>Test Visual Search</span>
-            </button>
-          </div>
-
           {customerImage && sessionId && !searchResults && !isSearching && (
             <div className="space-y-6">
               <div className="text-center">
@@ -121,22 +108,13 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSes
 
           {searchResults && (
             <ResultsDisplay
-              similarImages={[]}
-              analysis={null}
-              enhancedAnalysis={null}
-              offerText={null}
-              onGenerateAnalysis={() => {}}
-              onEnhanceAnalysis={() => {}}
+              searchResults={searchResults}
+              sessionId={sessionId}
+              submitEmail={submitEmail}
               onAnalyzeOrigin={analyzeOrigin}
               isAnalyzingOrigin={isAnalyzingOrigin}
-              originResults={originResults || null}
+              originResults={originResults}
               isAnalyzing={false}
-              isEnhancing={false}
-              steps={[]}
-              itemType={searchResults?.openai?.category || null}
-              searchResults={searchResults}
-              sessionId={sessionId || null}
-              submitEmail={submitEmail}
             />
           )}
         </div>

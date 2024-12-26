@@ -1,14 +1,13 @@
-# AI Art Screener
+# Appraisily Art Screener Frontend
 
-A React-based art analysis tool that provides instant AI-powered insights for artwork and antiques. Built with TypeScript, Tailwind CSS, and modern React practices.
+This repository contains the frontend code for Appraisily's Art Screener application. The backend service is hosted separately at https://appraisals-web-services-backend-856401495068.us-central1.run.app.
 
 ## Features
 
 - 🎨 Instant artwork analysis using AI vision
 - 🔍 Visual similarity search
-- 🤖 OpenAI-powered artwork classification
+- 🤖 AI-powered artwork classification
 - 📊 Detailed visual analysis reports
-- 📧 Email-based report delivery
 - 💻 Responsive, modern UI
 - 🎯 Progressive feature unlocking
 
@@ -30,8 +29,7 @@ src/
 │   ├── ResultsDisplay/  # Analysis results display
 │   └── EmailCollector/  # Email collection form
 ├── hooks/               # Custom React hooks
-│   ├── useImageAnalysis/# Image analysis logic
-│   └── useTawkTo/      # Chat widget integration
+│   └── useImageAnalysis/# Image analysis logic
 ├── pages/              # Page components
 │   ├── HomePage/       # Main landing page
 │   └── AnalyzePage/    # Analysis results page
@@ -63,86 +61,7 @@ npm run build
 Create a `.env` file:
 
 ```env
-VITE_API_URL=http://localhost:8080  # Development
-VITE_API_URL=https://api.example.com  # Production
-```
-
-## API Integration
-
-### Base URL
-
-```
-Development: http://localhost:8080
-Production: https://appraisals-web-services-backend-856401495068.us-central1.run.app
-```
-
-### Endpoints
-
-#### 1. Upload Image
-```http
-POST /upload-temp
-Content-Type: multipart/form-data
-
-Request:
-- image: File (max 5MB)
-
-Response:
-{
-  "success": boolean,
-  "sessionId": string,
-  "imageUrl": string
-}
-```
-
-#### 2. Visual Search
-```http
-POST /visual-search
-Content-Type: application/json
-
-Request:
-{
-  "sessionId": string
-}
-
-Response:
-{
-  "success": boolean,
-  "results": {
-    "openai": {
-      "category": "Art" | "Antique",
-      "description": string
-    },
-    "vision": {
-      "webEntities": Array<{
-        "entityId": string,
-        "score": number,
-        "description": string
-      }>,
-      "description": {
-        "labels": string[],
-        "confidence": number
-      }
-    }
-  }
-}
-```
-
-#### 3. Submit Email
-```http
-POST /submit-email
-Content-Type: application/json
-
-Request:
-{
-  "email": string,
-  "sessionId": string
-}
-
-Response:
-{
-  "success": boolean,
-  "message": string
-}
+VITE_API_URL=https://appraisals-web-services-backend-856401495068.us-central1.run.app
 ```
 
 ## Development
