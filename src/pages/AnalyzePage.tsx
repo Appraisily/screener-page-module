@@ -21,7 +21,7 @@ function AnalyzePage() {
     originResults
   } = useImageAnalysis(undefined, sessionId);
 
-  const handleEmailSubmit = useCallback(async (email: string) => {
+  const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (sessionId) {
       return await submitEmail(email);
     }

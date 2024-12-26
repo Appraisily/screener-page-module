@@ -47,10 +47,11 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
   const handleClick = () => {
     console.log('[Origin Analysis] Panel clicked', {
       isAnalyzing,
-      hasResults: !!results,
-      timestamp: new Date().toISOString()
+      hasResults: !!results
     });
-    onClick();
+    if (!isAnalyzing) {
+      onClick();
+    }
   };
 
   const renderConfidenceBar = (confidence: number) => {
@@ -98,71 +99,47 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
                   transition-all duration-300">
       <div 
         onClick={handleClick}
-        className={`p-6 cursor-pointer relative
-                  ${isAnalyzing ? 'border-[#007bff]' : 'border-gray-100 hover:border-[#007bff]'}`}
+        className={`relative p-6 cursor-pointer border-b ${
+          isAnalyzing ? 'border-[#007bff]' : 'border-gray-100 hover:border-[#007bff]'
+        }`}
       >
         {isAnalyzing && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-2 border-[#007bff] border-t-transparent rounded-full animate-spin" />
               <p className="text-sm font-medium text-gray-600">Analyzing origin...</p>
             </div>
           </div>
         )}
-        <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-            <img
-              src={`${IMAGEKIT_URL}/origin?tr=w-64,h-64,q-60`}
-              alt="Origin Analysis"
-              className="w-full h-full object-cover transform transition-transform duration-300 
-                       group-hover:scale-105"
-              loading="lazy"
-              width="64"
-              height="64"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              Origin Analysis
-              <MapPin className="h-5 w-5 text-[#007bff]" aria-hidden="true" />
-              {isAnalyzing && (
-                <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#007bff] border-r-transparent"></span>
-              )}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {isAnalyzing ? 'Analyzing artwork origin...' : 'Determine likely origin'}
-            </p>
+        <div className="relative z-0">
+          <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+              <img
+                src={`${IMAGEKIT_URL}/origin?tr=w-64,h-64,q-60`}
+                alt="Origin Analysis"
+                className="w-full h-full object-cover transform transition-transform duration-300 
+                         group-hover:scale-105"
+                loading="lazy"
+                width="64"
+                height="64"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                Origin Analysis
+                <MapPin className="h-5 w-5 text-[#007bff]" aria-hidden="true" />
+                {isAnalyzing && (
+                  <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#007bff] border-r-transparent"></span>
+                )}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {isAnalyzing ? 'Analyzing artwork origin...' : 'Determine likely origin'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-      
-      {/* Loading State */}
-      {isAnalyzing && (
-        <div className="border-t border-gray-100 p-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full border-2 border-[#007bff] border-r-transparent animate-spin" />
-              <div className="flex-1">
-                <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4" />
-                <div className="h-2 bg-gray-100 rounded animate-pulse w-1/2 mt-2" />
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-full" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-5/6" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-4/6" />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="h-20 bg-gray-100 rounded animate-pulse" />
-              <div className="h-20 bg-gray-100 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Results Section */}
       {results?.originAnalysis && (
         <div className="border-t border-gray-100">

@@ -74,11 +74,11 @@ const antiqueTools = [
 import type { ItemType } from '../types';
 
 interface ServicesProps {
-  itemType: ItemType;
-  submitEmail: (email: string) => Promise<boolean>;
+  itemType: ItemType | null;
+  currentStep?: number;
 }
 
-const Services = ({ itemType, submitEmail }: ServicesProps) => {
+const Services = ({ itemType, currentStep = 1 }: ServicesProps) => {
   const tools = itemType === 'Art' ? artTools : itemType === 'Antique' ? antiqueTools : [];
 
   if (!itemType) return null;

@@ -57,6 +57,7 @@ export function useVisualSearch(apiUrl: string) {
     debug('Starting test visual search', { sessionId: testSessionId });
     setError(null);
     setIsSearching(true);
+    let processedResults = null;
 
     try {
       const response = await fetch(`${apiUrl}/visual-search`, {
@@ -77,7 +78,7 @@ export function useVisualSearch(apiUrl: string) {
         throw new Error(data.message || 'Search failed');
       }
 
-      const processedResults = {
+      processedResults = {
         openai: data.results?.openai,
         description: data.results?.vision?.description,
         webEntities: data.results?.vision?.webEntities || [],
@@ -94,6 +95,7 @@ export function useVisualSearch(apiUrl: string) {
       setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
       setIsSearching(false);
+      return processedResults;
     }
   }, [apiUrl]);
 

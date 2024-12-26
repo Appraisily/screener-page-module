@@ -1,6 +1,8 @@
 interface DebugOptions {
   type?: 'info' | 'warn' | 'error';
   data?: any;
+  sessionId?: string;
+  processedResults?: any;
 }
 
 export const debug = (message: string, options: DebugOptions = {}) => {

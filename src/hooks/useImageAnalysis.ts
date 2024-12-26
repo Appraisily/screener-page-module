@@ -3,10 +3,12 @@ import { useImageUpload } from './api/useImageUpload';
 import { useVisualSearch } from './api/useVisualSearch';
 import { useOriginAnalysis } from './api/useOriginAnalysis';
 import { useEmailSubmission } from './api/useEmailSubmission';
+import type { SearchResults, OriginResults } from '../types';
 
 export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const effectiveApiUrl = apiUrl || import.meta.env.VITE_API_URL;
   const [isInitializing, setIsInitializing] = useState(!!initialSessionId);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const {
     uploadImage,
@@ -73,7 +75,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
           return startVisualSearch(initialSessionId);
         })
         .catch(err => {
-          setError(err.message);
+          setUploadError(err instanceof Error ? err.message : 'Failed to initialize');
         })
         .finally(() => {
           setIsInitializing(false);
@@ -87,25 +89,38 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     isUploading,
     customerImage,
     sessionId,
+    setSessionId,
     isInitializing,
 
     // Visual search
     startVisualSearch,
+    testVisualSearch,
     isSearching,
     searchResults,
 
     // Origin analysis
-    analyzeOrigin: () => sessionId && analyzeOrigin(sessionId),
+    analyzeOrigin: () => {
+      if (sessionId) {
+        console.log('Analyzing origin for session:', sessionId);
+        analyzeOrigin(sessionId);
+      } else {
+        console.warn('Cannot analyze origin: No session ID', { sessionId });
+      }
+    },
     isAnalyzingOrigin,
     originResults,
 
     // Email submission
-    submitEmail: async (email: string) => sessionId && submitEmail(email, sessionId),
+    submitEmail: async (email: string) => {
+      if (!sessionId) return false;
+      return submitEmail(email, sessionId);
+    },
     isSubmitting,
     userEmail,
 
     // Common
     error,
-    clearErrors
+    clearErrors,
+    currentStep,
   };
 }

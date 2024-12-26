@@ -24,6 +24,7 @@ function HomePage({ apiUrl }: HomePageProps) {
     isSearching,
     customerImage,
     sessionId,
+    setSessionId,
     analyzeOrigin,
     isAnalyzingOrigin,
     originResults,
@@ -31,7 +32,7 @@ function HomePage({ apiUrl }: HomePageProps) {
     searchResults
   } = useImageAnalysis(apiUrl);
 
-  const handleEmailSubmit = useCallback(async (email: string) => {
+  const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (sessionId) {
       return await submitEmail(email);
     }
@@ -128,7 +129,13 @@ function HomePage({ apiUrl }: HomePageProps) {
             {/* Test Button */}
             <div className="flex justify-center mt-8">
               <button
-                onClick={() => !isSearching && testVisualSearch('5beeda96-1ab6-49a5-b689-58af1bc8768d')}
+                onClick={async () => {
+                  if (!isSearching && setSessionId) {
+                    const testId = '5beeda96-1ab6-49a5-b689-58af1bc8768d';
+                    setSessionId(testId);
+                    await testVisualSearch(testId);
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 
                          bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 
                          disabled:cursor-not-allowed"
