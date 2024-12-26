@@ -24,7 +24,8 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSes
     isAnalyzingOrigin,
     originResults,
     error,
-    searchResults
+    searchResults,
+    currentStep
   } = useImageAnalysis(apiUrl, initialSessionId);
 
   return (
@@ -128,11 +129,11 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSes
               onEnhanceAnalysis={() => {}}
               onAnalyzeOrigin={analyzeOrigin}
               isAnalyzingOrigin={isAnalyzingOrigin}
-              originResults={originResults}
+              originResults={originResults || null}
               isAnalyzing={false}
               isEnhancing={false}
               steps={[]}
-              itemType={null}
+              itemType={searchResults?.openai?.category || null}
               searchResults={searchResults}
               sessionId={sessionId || null}
               submitEmail={submitEmail}

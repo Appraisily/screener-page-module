@@ -114,11 +114,11 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             )}
 
             {/* Similar Images */}
-            {results.matches?.similar?.length > 0 && (
+            {results.matches?.similar && results.matches.similar.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Similar Artworks Found</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {results.matches.similar.map((match, index) => (
+                  {results.matches?.similar?.map((match, index) => (
                     <div 
                       key={index}
                       className="relative bg-gray-50 rounded-lg overflow-hidden aspect-square group hover:shadow-lg transition-all"

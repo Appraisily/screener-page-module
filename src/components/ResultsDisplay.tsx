@@ -66,7 +66,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   return (
     <div className="space-y-12">
       {/* Visual Search Results */}
-      {searchResults && <VisualSearchResults results={searchResults} />},
+      {searchResults && <VisualSearchResults results={searchResults} />}
       
       {/* Origin Analysis Panel */}
       {searchResults && (
@@ -92,7 +92,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             isLoading={isAnalyzing}
           />
         </div>
-      )},
+      )}
 
       {isAnalyzing && (
         <div className="text-center py-8">
@@ -131,7 +131,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
           )}
         </div>
-      )},
+      )}
 
       {isEnhancing && (
         <div className="text-center py-8">

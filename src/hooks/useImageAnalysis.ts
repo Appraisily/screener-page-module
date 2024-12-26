@@ -88,6 +88,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
   const [isAnalyzingOrigin, setIsAnalyzingOrigin] = useState(false);
   const [originResults, setOriginResults] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(1);
   
   const analyzeOrigin = async () => {
     if (!sessionId) {
@@ -311,7 +312,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
       const data = await response.json();
       debug('Visual search response parsed', { 
         data: {
-          success: data.success,
+          type: 'info',
           sessionId: data.sessionId,
           category: data.results?.openai?.category,
           description: data.results?.openai?.description,
@@ -327,7 +328,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
       }
 
       // Set sessionId from test data
-      debug('Using session ID:', { data: { sessionId } });
+      debug('Using session ID:', { data: { type: 'info', sessionId } });
 
       // Process and structure the results
       debug('Processing visual search results', { 
@@ -429,6 +430,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     submitEmail,
     analyzeOrigin,
     isUploading,
+    currentStep,
     isSearching,
     isAnalyzingOrigin,
     customerImage,
