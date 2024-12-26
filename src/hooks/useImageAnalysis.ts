@@ -6,7 +6,6 @@ import { useEmailSubmission } from './api/useEmailSubmission';
 
 export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const effectiveApiUrl = apiUrl || import.meta.env.VITE_API_URL;
-  const [currentStep, setCurrentStep] = useState(1);
   const [isInitializing, setIsInitializing] = useState(!!initialSessionId);
 
   const {
@@ -55,19 +54,6 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     setOriginError(null);
     setEmailError(null);
   };
-
-  // Handle step transitions
-  useEffect(() => {
-    if (searchResults) {
-      setCurrentStep(2);
-    }
-    if (originResults) {
-      setCurrentStep(3);
-    }
-    if (userEmail) {
-      setCurrentStep(4);
-    }
-  }, [searchResults, originResults, userEmail]);
 
   // Initialize with session ID if provided
   useEffect(() => {
@@ -120,7 +106,6 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
 
     // Common
     error,
-    clearErrors,
-    currentStep
+    clearErrors
   };
 }

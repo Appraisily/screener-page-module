@@ -75,10 +75,10 @@ import type { ItemType } from '../types';
 
 interface ServicesProps {
   itemType: ItemType;
-  currentStep: number;
+  submitEmail: (email: string) => Promise<boolean>;
 }
 
-const Services = ({ itemType, currentStep }: ServicesProps) => {
+const Services = ({ itemType, submitEmail }: ServicesProps) => {
   const tools = itemType === 'Art' ? artTools : itemType === 'Antique' ? antiqueTools : [];
 
   if (!itemType) return null;
