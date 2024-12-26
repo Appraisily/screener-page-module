@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEBUG = true;
+
+// Function to extract sessionId from URL parameters
+const getSessionIdFromUrl = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('sessionId');
+};
 
 interface DebugOptions {
   type?: 'info' | 'warn' | 'error';
@@ -34,13 +40,50 @@ export type AnalysisStep = {
   status: 'pending' | 'processing' | 'completed' | 'error';
 };
 
-export function useImageAnalysis() {
+export function useImageAnalysis(apiUrl?: string) {
+  const effectiveApiUrl = apiUrl || API_URL;
   const [isUploading, setIsUploading] = useState(false);
   const [customerImage, setCustomerImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any>(null);
+
+  // Load session on mount if sessionId is in URL
+  useEffect(() => {
+    const urlSessionId = getSessionIdFromUrl();
+    if (urlSessionId) {
+      loadExistingSession(urlSessionId);
+    }
+  }, []);
+
+  const loadExistingSession = async (sid: string) => {
+    debug('Loading existing session', { data: { sessionId: sid } });
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      const response = await fetch(`${effectiveApiUrl}/session/${sid}`);
+      if (!response.ok) {
+        throw new Error('Failed to load session');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to load session');
+      }
+
+      setCustomerImage(data.imageUrl);
+      setSessionId(sid);
+      
+      // Automatically start visual search for existing sessions
+      startVisualSearch(sid);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load session');
+    } finally {
+      setIsUploading(false);
+    }
+  };
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
   const [isAnalyzingOrigin, setIsAnalyzingOrigin] = useState(false);

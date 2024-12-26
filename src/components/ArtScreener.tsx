@@ -7,9 +7,10 @@ import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
 export interface ArtScreenerProps {
   apiUrl?: string;
+  sessionId?: string;
 }
 
-const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl }) => {
+const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSessionId }) => {
   const {
     uploadImage,
     startVisualSearch,
@@ -24,7 +25,7 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl }) => {
     originResults,
     error,
     searchResults
-  } = useImageAnalysis(apiUrl);
+  } = useImageAnalysis(apiUrl, initialSessionId);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -74,12 +75,14 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl }) => {
         )}
 
         <div className="space-y-12">
-          <ImageUploader 
-            onUpload={uploadImage}
-            isUploading={isUploading}
-            customerImage={customerImage}
-            sessionId={sessionId}
-          />
+          {!initialSessionId && (
+            <ImageUploader 
+              onUpload={uploadImage}
+              isUploading={isUploading}
+              customerImage={customerImage}
+              sessionId={sessionId}
+            />
+          )}
 
           {customerImage && sessionId && !searchResults && !isSearching && (
             <div className="space-y-6">
