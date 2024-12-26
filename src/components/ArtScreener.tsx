@@ -83,6 +83,17 @@ const ArtScreener: React.FC<ArtScreenerProps> = ({ apiUrl, sessionId: initialSes
               sessionId={sessionId}
             />
           )}
+          
+          {/* Test Button - Always visible for debugging */}
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={() => testVisualSearch('5beeda96-1ab6-49a5-b689-58af1bc8768d')}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 
+                       bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              <span>Test Visual Search</span>
+            </button>
+          </div>
 
           {customerImage && sessionId && !searchResults && !isSearching && (
             <div className="space-y-6">

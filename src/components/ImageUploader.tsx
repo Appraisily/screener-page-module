@@ -96,7 +96,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
               </div>
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {isUploading ? 'Uploading artwork...' : 'Drop your artwork here'}
+                  {isUploading ? 'Uploading item...' : 'Drop your item here (art or antique)'}
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   {isUploading ? 'Please wait while we process your image' : 'or click to select a file'}
@@ -126,7 +126,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
             onClick={handleClick}
           >
             <ImageIcon className="w-4 h-4" />
-            {customerImage ? 'Upload Another Image' : 'Select Image'}
+            {customerImage ? 'Upload Another Item' : 'Select Item'}
           </label>
         </div>
       </div>

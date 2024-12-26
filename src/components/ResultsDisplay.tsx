@@ -66,7 +66,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   return (
     <div className="space-y-12">
       {/* Visual Search Results */}
-      {searchResults && <VisualSearchResults results={searchResults} />}
+      {searchResults && <VisualSearchResults results={searchResults} />},
       
       {/* Origin Analysis Panel */}
       {searchResults && (
@@ -80,7 +80,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       )}
       
       {/* Email Collector */}
-      {searchResults && !emailSubmitted && sessionId && (
+      {originResults && !emailSubmitted && sessionId && (
         <div className="mx-auto max-w-2xl mt-8">
           <EmailCollector 
             onSubmit={async (email) => {
@@ -92,21 +92,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             isLoading={isAnalyzing}
           />
         </div>
-      )}
-      {!analysis && !isAnalyzing && emailSubmitted && (
-        <div className="flex justify-center">
-          <button
-            onClick={onGenerateAnalysis}
-            className="rounded-md bg-[rgb(0,123,255)] px-6 py-3 text-lg font-semibold text-white shadow-sm 
-                     hover:bg-[rgb(0,123,255)]/90 focus-visible:outline focus-visible:outline-2 
-                     focus-visible:outline-offset-2 focus-visible:outline-[rgb(0,123,255)] 
-                     transition-all duration-200 flex items-center gap-2"
-          >
-            <MessageSquare className="w-5 h-5" />
-            Generate Expert Analysis
-          </button>
-        </div>
-      )}
+      )},
 
       {isAnalyzing && (
         <div className="text-center py-8">
@@ -145,7 +131,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
           )}
         </div>
-      )}
+      )},
 
       {isEnhancing && (
         <div className="text-center py-8">

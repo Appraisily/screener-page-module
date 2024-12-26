@@ -40,12 +40,12 @@ export type AnalysisStep = {
   status: 'pending' | 'processing' | 'completed' | 'error';
 };
 
-export function useImageAnalysis(apiUrl?: string) {
+export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const effectiveApiUrl = apiUrl || API_URL;
   const [isUploading, setIsUploading] = useState(false);
   const [customerImage, setCustomerImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId || null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any>(null);
 
@@ -327,7 +327,7 @@ export function useImageAnalysis(apiUrl?: string) {
       }
 
       // Set sessionId from test data
-      debug('Using test session ID:', { data: { sessionId: testSessionId } });
+      debug('Using session ID:', { data: { sessionId } });
 
       // Process and structure the results
       debug('Processing visual search results', { 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import OpenAIAnalysis from './OpenAIAnalysis.tsx';
+import OpenAIAnalysis from './OpenAIAnalysis';
 
 interface WebLabel {
   label: string;
