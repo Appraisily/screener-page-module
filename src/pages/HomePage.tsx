@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { AlertCircle, Search } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ImageUploader from '../components/ImageUploader';
@@ -10,7 +10,7 @@ interface HomePageProps {
   apiUrl?: string;
 }
 
-export default function HomePage({ apiUrl }: HomePageProps) {
+function HomePage({ apiUrl }: HomePageProps) {
   const {
     uploadImage,
     startVisualSearch,
@@ -26,6 +26,13 @@ export default function HomePage({ apiUrl }: HomePageProps) {
     error,
     searchResults
   } = useImageAnalysis();
+
+  const handleEmailSubmit = useCallback(async (email: string) => {
+    if (sessionId) {
+      return await submitEmail(email);
+    }
+    return false;
+  }, [sessionId, submitEmail]);
 
   useEffect(() => {
     console.log('HomePage state update:', {
@@ -150,7 +157,7 @@ export default function HomePage({ apiUrl }: HomePageProps) {
                 itemType={null}
                 searchResults={searchResults}
                 sessionId={sessionId || null}
-                submitEmail={submitEmail}
+                submitEmail={handleEmailSubmit}
               />
             )}
           </div>

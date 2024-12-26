@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
 import AppraiserProfile from './AppraiserProfile';
 import VisualSearchResults from './VisualSearchResults';
 import OriginAnalysisPanel from './OriginAnalysisPanel';
@@ -53,7 +52,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       )}
       
       {/* Email Collector */}
-      {originResults && !emailSubmitted && sessionId && (
+      {originResults && !emailSubmitted && (
         <div className="mx-auto max-w-2xl mt-8">
           <EmailCollector 
             onSubmit={async (email) => {
@@ -61,6 +60,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               if (success) {
                 setEmailSubmitted(true);
               }
+              return success;
             }}
             isLoading={isAnalyzing}
           />

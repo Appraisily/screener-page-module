@@ -43,3 +43,10 @@ export interface OriginResults {
   comparison_notes: string;
   recommendation: string;
 }
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: T;
+}

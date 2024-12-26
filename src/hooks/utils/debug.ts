@@ -4,7 +4,7 @@ interface DebugOptions {
 }
 
 export const debug = (message: string, options: DebugOptions = {}) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     const { type = 'info', data } = options;
     const prefix = `[Visual Search]`;
 

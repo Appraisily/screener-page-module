@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Fingerprint, MapPin, Stamp, Calendar, Search } from 'lucide-react';
 import Panel from './Panel';
 

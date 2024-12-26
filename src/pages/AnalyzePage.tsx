@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -6,7 +6,7 @@ import ResultsDisplay from '../components/ResultsDisplay';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
-export default function AnalyzePage() {
+function AnalyzePage() {
   const { sessionId } = useParams<{ sessionId: string }>();
 
   const {
@@ -28,6 +28,13 @@ export default function AnalyzePage() {
     searchResults,
     submitEmail
   } = useImageAnalysis();
+
+  const handleEmailSubmit = useCallback(async (email: string) => {
+    if (sessionId) {
+      return await submitEmail(email);
+    }
+    return false;
+  }, [sessionId, submitEmail]);
 
   useEffect(() => {
     if (sessionId) {
@@ -68,7 +75,7 @@ export default function AnalyzePage() {
           <div className="space-y-16">
             <Services 
               itemType={searchResults?.openai?.category || null}
-              currentStep={currentStep} 
+              submitEmail={handleEmailSubmit}
             />
             {customerImage && (
               <ResultsDisplay 
