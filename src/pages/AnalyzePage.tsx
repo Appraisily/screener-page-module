@@ -10,24 +10,16 @@ function AnalyzePage() {
   const { sessionId } = useParams<{ sessionId: string }>();
 
   const {
-    generateAnalysis,
-    enhanceAnalysis,
-    isAnalyzing,
-    isEnhancing,
+    isInitializing,
     customerImage,
-    similarImages,
-    analysis,
-    enhancedAnalysis,
-    offerText,
     error,
-    steps,
-    itemType,
-    fetchTempImage,
-    activeService,
     currentStep,
     searchResults,
-    submitEmail
-  } = useImageAnalysis();
+    submitEmail,
+    analyzeOrigin,
+    isAnalyzingOrigin,
+    originResults
+  } = useImageAnalysis(undefined, sessionId);
 
   const handleEmailSubmit = useCallback(async (email: string) => {
     if (sessionId) {
@@ -36,11 +28,16 @@ function AnalyzePage() {
     return false;
   }, [sessionId, submitEmail]);
 
-  useEffect(() => {
-    if (sessionId) {
-      fetchTempImage(sessionId);
-    }
-  }, [sessionId, fetchTempImage]);
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-[#007bff] border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading analysis...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -79,18 +76,13 @@ function AnalyzePage() {
             />
             {customerImage && (
               <ResultsDisplay 
-                similarImages={similarImages}
-                analysis={analysis}
-                enhancedAnalysis={enhancedAnalysis}
-                offerText={offerText}
-                onGenerateAnalysis={generateAnalysis}
-                onEnhanceAnalysis={enhanceAnalysis}
-                isAnalyzing={isAnalyzing}
-                isEnhancing={isEnhancing}
-                steps={steps}
-                itemType={itemType}
+                searchResults={searchResults}
                 sessionId={sessionId}
                 submitEmail={submitEmail}
+                onAnalyzeOrigin={analyzeOrigin}
+                isAnalyzingOrigin={isAnalyzingOrigin}
+                originResults={originResults}
+                isAnalyzing={false}
               />
             )}
           </div>

@@ -10,6 +10,10 @@ interface HomePageProps {
   apiUrl?: string;
 }
 
+interface HomePageProps {
+  apiUrl?: string;
+}
+
 function HomePage({ apiUrl }: HomePageProps) {
   const {
     uploadImage,
@@ -25,7 +29,7 @@ function HomePage({ apiUrl }: HomePageProps) {
     originResults,
     error,
     searchResults
-  } = useImageAnalysis();
+  } = useImageAnalysis(apiUrl);
 
   const handleEmailSubmit = useCallback(async (email: string) => {
     if (sessionId) {
@@ -113,7 +117,10 @@ function HomePage({ apiUrl }: HomePageProps) {
                   </p>
                 </div>
               <div className="mx-auto max-w-2xl">
-                <VisualSearchPanel onClick={startVisualSearch} />
+                <VisualSearchPanel 
+                  onClick={() => sessionId && startVisualSearch(sessionId)} 
+                  isSearching={isSearching}
+                />
               </div>
               </div>
             )}
@@ -121,9 +128,11 @@ function HomePage({ apiUrl }: HomePageProps) {
             {/* Test Button */}
             <div className="flex justify-center mt-8">
               <button
-                onClick={() => testVisualSearch('5beeda96-1ab6-49a5-b689-58af1bc8768d')}
+                onClick={() => !isSearching && testVisualSearch('5beeda96-1ab6-49a5-b689-58af1bc8768d')}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 
-                         bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                         bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 
+                         disabled:cursor-not-allowed"
+                disabled={isSearching}
               >
                 <Search className="w-4 h-4" />
                 Test Visual Search

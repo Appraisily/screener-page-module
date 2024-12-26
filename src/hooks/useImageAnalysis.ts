@@ -7,18 +7,22 @@ import { useEmailSubmission } from './api/useEmailSubmission';
 export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const effectiveApiUrl = apiUrl || import.meta.env.VITE_API_URL;
   const [currentStep, setCurrentStep] = useState(1);
+  const [isInitializing, setIsInitializing] = useState(!!initialSessionId);
 
   const {
     uploadImage,
     isUploading,
     customerImage,
     sessionId,
+    setSessionId,
+    setCustomerImage,
     error: uploadError,
     setError: setUploadError
   } = useImageUpload(effectiveApiUrl);
 
   const {
     startVisualSearch,
+    testVisualSearch,
     isSearching,
     searchResults,
     error: searchError,
@@ -65,12 +69,39 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     }
   }, [searchResults, originResults, userEmail]);
 
+  // Initialize with session ID if provided
+  useEffect(() => {
+    if (initialSessionId && !sessionId) {
+      setIsInitializing(true);
+      setSessionId(initialSessionId);
+      
+      // Fetch the temporary image
+      fetch(`${effectiveApiUrl}/image/${initialSessionId}`)
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to fetch image');
+          return response.url;
+        })
+        .then(imageUrl => {
+          setCustomerImage(imageUrl);
+          // Start visual search automatically
+          return startVisualSearch(initialSessionId);
+        })
+        .catch(err => {
+          setError(err.message);
+        })
+        .finally(() => {
+          setIsInitializing(false);
+        });
+    }
+  }, [initialSessionId, effectiveApiUrl]);
+
   return {
     // Image upload
     uploadImage,
     isUploading,
     customerImage,
     sessionId,
+    isInitializing,
 
     // Visual search
     startVisualSearch,
