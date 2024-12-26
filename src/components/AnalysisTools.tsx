@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Fingerprint, MapPin, Stamp, Calendar, Search } from 'lucide-react';
 
 const IMAGEKIT_URL = 'https://ik.imagekit.io/appraisily/WebPage';

@@ -17,8 +17,7 @@ interface DebugOptions {
 const debug = (message: string, options: DebugOptions = {}) => {
   if (DEBUG) {
     const { type = 'info', data } = options;
-    const timestamp = new Date().toISOString();
-    const prefix = `[Visual Search ${timestamp}]`;
+    const prefix = `[Visual Search]`;
 
     switch (type) {
       case 'warn':
@@ -254,29 +253,34 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
       }
 
       const data = await response.json();
-      debug('Upload response status:', response.status);
+      debug('Upload response status:', { data: { status: response.status } });
       debug('Upload response data:', data);
       
       if (!data.success) {
         throw new Error(data.message || 'Failed to upload image');
       }
 
-      debug('Upload completed successfully', {
-        sessionId: data.sessionId,
-        imageUrl: data.imageUrl
+      debug('Upload completed successfully', { 
+        data: {
+          sessionId: data.sessionId,
+          imageUrl: data.imageUrl
+        }
       });
 
       setCustomerImage(data.imageUrl);
       setSessionId(data.sessionId);
 
     } catch (err) {
-      console.error('Upload error:', err);
+      debug('Upload error:', { 
+        type: 'error',
+        data: err instanceof Error ? err.message : 'Unknown error'
+      });
       setError(err instanceof Error ? err.message : 'Upload failed');
       setCustomerImage(null);
       setSessionId(null);
     } finally {
       setIsUploading(false);
-      debug('Upload process completed');
+      debug('Upload process completed', { type: 'info' });
     }
   };
 

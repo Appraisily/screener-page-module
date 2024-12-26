@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import AppraiserProfile from './AppraiserProfile';
 import VisualSearchResults from './VisualSearchResults';
 import OriginAnalysisPanel from './OriginAnalysisPanel';
@@ -18,7 +18,7 @@ interface ResultsDisplayProps {
   steps: AnalysisStep[];
   itemType: 'Art' | 'Antique' | null;
   searchResults?: any;
-  sessionId: string | null;
+  sessionId?: string | null;
   submitEmail: (email: string) => Promise<boolean>;
   onAnalyzeOrigin?: () => void;
   isAnalyzingOrigin?: boolean;

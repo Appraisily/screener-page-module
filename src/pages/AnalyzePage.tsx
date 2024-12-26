@@ -6,7 +6,7 @@ import ResultsDisplay from '../components/ResultsDisplay';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
-function AnalyzePage() {
+const AnalyzePage = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
 
   const {
@@ -23,7 +23,10 @@ function AnalyzePage() {
     steps,
     itemType,
     fetchTempImage,
-    activeService
+    activeService,
+    currentStep,
+    searchResults,
+    submitEmail
   } = useImageAnalysis();
 
   useEffect(() => {
@@ -63,7 +66,10 @@ function AnalyzePage() {
           )}
 
           <div className="space-y-16">
-            <Services activeService={activeService} />
+            <Services 
+              itemType={searchResults?.openai?.category || null}
+              currentStep={currentStep} 
+            />
             {customerImage && (
               <ResultsDisplay 
                 similarImages={similarImages}
@@ -76,6 +82,8 @@ function AnalyzePage() {
                 isEnhancing={isEnhancing}
                 steps={steps}
                 itemType={itemType}
+                sessionId={sessionId}
+                submitEmail={submitEmail}
               />
             )}
           </div>

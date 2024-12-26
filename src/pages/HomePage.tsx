@@ -6,7 +6,11 @@ import VisualSearchPanel from '../components/VisualSearchPanel';
 import ResultsDisplay from '../components/ResultsDisplay';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
-function HomePage() {
+interface HomePageProps {
+  apiUrl?: string;
+}
+
+const HomePage = ({ apiUrl }: HomePageProps) => {
   const {
     uploadImage,
     startVisualSearch,
