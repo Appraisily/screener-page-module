@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Mail, ArrowRight } from 'lucide-react';
 import AppraiserProfile from './AppraiserProfile';
 import VisualSearchResults from './VisualSearchResults';
 import OriginAnalysisPanel from './OriginAnalysisPanel';
@@ -75,12 +76,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {searchResults && !emailSubmitted && (
         <div className="mx-auto max-w-2xl mt-8">
           <EmailCollector 
-            onSubmit={async (email) => {
-              const success = await submitEmail(email);
-              if (success) {
-                setEmailSubmitted(true);
-              }
-              return success;
+            onSubmit={(email) => {
+              setEmailSubmitted(true);
+              submitEmail(email); // Fire and forget
+              return true;
             }}
             isLoading={isAnalyzing}
           />
