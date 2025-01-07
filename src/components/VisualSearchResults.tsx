@@ -53,7 +53,11 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
       
       {/* Main Analysis Panel */}
       {((results.description?.labels?.length ?? 0) > 0 || (results.webEntities?.length ?? 0) > 0) && (
+<<<<<<< HEAD
         <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+=======
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+>>>>>>> ddcfd31db6c6d9f4cec4b8ad8a2227c807fea21e
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-[#007bff]" />
