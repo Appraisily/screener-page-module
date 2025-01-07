@@ -43,7 +43,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
   return (
     <div className="mx-auto max-w-2xl">
       <div
-        className={`rounded-2xl bg-white p-8 shadow-lg ring-1 transition-all duration-200 ${
+        className={`rounded-2xl bg-white p-4 sm:p-8 shadow-lg ring-1 transition-all duration-200 ${
           isUploading
             ? 'ring-[rgb(0,123,255)]'
             : 'ring-gray-200 hover:ring-[rgb(0,123,255)]'
@@ -56,8 +56,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
             <div className="relative w-full">
               <img
                 src={customerImage}
-                alt="Uploaded artwork"
-                className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-lg transition-transform duration-200 hover:-translate-y-1"
+                alt="Uploaded item"
+                className="w-full h-auto max-h-[300px] sm:max-h-[500px] object-contain rounded-lg shadow-lg transition-transform duration-200 hover:-translate-y-1"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=500&fit=crop';

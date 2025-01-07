@@ -43,7 +43,7 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
   console.log('VisualSearchResults received:', results);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {results?.openai && (
         <OpenAIAnalysis 
           category={results.openai.category}
@@ -52,8 +52,8 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
       )}
       
       {/* Main Analysis Panel */}
-      {(results.description?.labels?.length > 0 || results.webEntities?.length > 0) && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      {((results.description?.labels?.length ?? 0) > 0 || (results.webEntities?.length ?? 0) > 0) && (
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-[#007bff]" />
@@ -66,10 +66,10 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
           
           <div className="space-y-6">
             {/* Web Entities */}
-            {results.webEntities?.length > 0 && (
+            {(results.webEntities?.length ?? 0) > 0 && (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {results.webEntities.map((entity, index) => (
+                  {(results.webEntities ?? []).map((entity, index) => (
                     <div 
                       key={index}
                       className="relative flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group"
@@ -89,11 +89,11 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             )}
 
             {/* Derived Subjects */}
-            {results.derivedSubjects?.length > 0 && (
+            {(results.derivedSubjects?.length ?? 0) > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-4">Subject Analysis</h4>
                 <div className="flex flex-wrap gap-2">
-                  {results.derivedSubjects.map((subject, index) => (
+                  {(results.derivedSubjects ?? []).map((subject, index) => (
                     <span
                       key={index}
                       className="inline-flex items-center rounded-full bg-gray-100/75 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200/50 hover:bg-gray-200/50 transition-colors"
@@ -106,11 +106,11 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             )}
             
             {/* Image Labels */}
-            {results.description?.labels?.length > 0 && (
+            {(results.description?.labels?.length ?? 0) > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-4">Visual Elements</h4>
                 <div className="flex flex-wrap gap-2">
-                  {results.description.labels.map((label, index) => (
+                  {(results.description?.labels ?? []).map((label, index) => (
                     <span
                       key={index}
                       className={cn(
@@ -127,7 +127,7 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             )}
 
             {/* Similar Images */}
-            {results.matches?.similar && results.matches.similar.length > 0 && (
+            {results.matches?.similar && (results.matches.similar?.length ?? 0) > 0 && (
               <div>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -139,7 +139,7 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {results.matches?.similar?.map((match, index) => (
+                  {(results.matches?.similar ?? []).map((match, index) => (
                     <div 
                       key={index}
                       className="relative rounded-xl overflow-hidden aspect-square group hover:shadow-lg transition-all border border-gray-100 hover:border-blue-200"

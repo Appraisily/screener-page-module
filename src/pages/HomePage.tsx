@@ -56,7 +56,7 @@ function HomePage({ apiUrl }: HomePageProps) {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-16">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-16 overflow-x-hidden">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 sm:py-16">
           <header className="mx-auto max-w-3xl text-center mb-16">
             <div className="flex flex-col items-center justify-center gap-6">
@@ -76,9 +76,9 @@ function HomePage({ apiUrl }: HomePageProps) {
               </div>
 
               <p className="text-lg text-gray-600 max-w-2xl">
-                See if your item's worth further appraisal. Get instant insights using our proprietary tools to help determine authenticity and potential value.
+                See if your item's worth further appraisal. Get instant insights using our proprietary tools.
               </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <div className="flex flex-wrap justify-center gap-4 text-sm px-4">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#007bff]" />
                   <span className="text-gray-600">Free instant analysis</span>

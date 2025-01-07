@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Mail, ArrowRight } from 'lucide-react';
 import AppraiserProfile from './AppraiserProfile';
 import VisualSearchResults from './VisualSearchResults';
 import OriginAnalysisPanel from './OriginAnalysisPanel';
@@ -38,11 +39,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   return (
     <div className="space-y-12">
       {/* Visual Search Results */}
-      {searchResults && <VisualSearchResults results={searchResults} />}
+      <div className="overflow-x-hidden">
+        {searchResults && <VisualSearchResults results={searchResults} />}
+      </div>
       
       {/* Email Confirmation */}
       {emailSubmitted && (
-        <div className="mx-auto max-w-2xl bg-blue-50 rounded-xl p-6 border border-blue-100">
+        <div className="mx-auto max-w-2xl bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-100">
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
               <Mail className="w-6 h-6 text-blue-600" />
@@ -75,12 +78,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {searchResults && !emailSubmitted && (
         <div className="mx-auto max-w-2xl mt-8">
           <EmailCollector 
-            onSubmit={async (email) => {
-              const success = await submitEmail(email);
-              if (success) {
-                setEmailSubmitted(true);
-              }
-              return success;
+            onSubmit={(email) => {
+              setEmailSubmitted(true);
+              submitEmail(email); // Fire and forget
+              return true;
             }}
             isLoading={isAnalyzing}
           />

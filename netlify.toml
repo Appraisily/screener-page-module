@@ -17,3 +17,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[site]
+  id = "8d35f28f-dbd5-4126-b8e4-c2513f7812d4"
+  name = "melodious-cucurucho-af6d21"
