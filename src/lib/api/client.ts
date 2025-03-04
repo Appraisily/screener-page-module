@@ -64,26 +64,8 @@ apiClient.interceptors.response.use(
     
     console.debug('[Debug] API Response (' + response.config.url + '):', response.status, responseData);
     
-    if (responseData && typeof responseData === 'object' && 'success' in responseData) {
-      // Return standardized response data
-      if (responseData.success === true) {
-        console.debug('[Debug] Extracted data from standardized response:', responseData.data);
-        return responseData.data;
-      } else if (responseData.error) {
-        console.error('[Debug] API Error:', responseData.error);
-        
-        // Create standardized API error
-        const apiError = new Error(responseData.error?.message || 'Unknown API Error');
-        (apiError as any).code = responseData.error?.code || 'API_ERROR';
-        (apiError as any).details = responseData.error?.details || {};
-        (apiError as any).originalData = responseData;
-        
-        return Promise.reject(apiError);
-      }
-    }
-    
-    // If not in our API format, just return the data as-is
-    return response.data;
+    // Return the original response data - we'll handle specific formatting in each method
+    return responseData;
   },
   (error: AxiosError) => {
     console.error('[Debug] API request failed:', error);
@@ -168,161 +150,138 @@ const api = {
         },
       });
       
-      console.debug('[Debug] Upload response status:', response.status);
-      console.debug('[Debug] Raw response data:', JSON.stringify(response.data));
-      console.debug('[Debug] Response type:', typeof response.data);
+      console.debug('[Debug] Raw upload response:', response);
       
       // If the response is null or undefined, throw an error
-      if (!response.data) {
-        console.error('[Debug] Response data is null or undefined');
+      if (response === undefined || response === null) {
+        console.error('[Debug] Response is null or undefined');
         throw new Error('Empty response from server');
       }
       
-      const responseData = response.data as Record<string, any>;
-      
-      // Log all available keys in the response for debugging
-      if (isObjectWithStringProps(responseData)) {
-        console.debug('[Debug] Response keys:', Object.keys(responseData));
-      }
-      
-      // Check for our specific API response format {success: true, data: {...}, error: null}
-      if (isObjectWithStringProps(responseData) && 
-          'success' in responseData && responseData.success === true && 
-          'data' in responseData && isObjectWithStringProps(responseData.data)) {
-        console.debug('[Debug] Found standardized API response format');
+      // CASE 1: Standard API response format with success/data/error
+      if (isObjectWithStringProps(response) && 'success' in response) {
+        console.debug('[Debug] Found standard API response format');
         
-        // Extract data from the nested data object
-        const data = responseData.data;
-        console.debug('[Debug] Data keys:', Object.keys(data));
-        
-        if ('imageUrl' in data && 'sessionId' in data) {
-          console.debug('[Debug] Successfully extracted fields from data object');
-          return {
-            imageUrl: data.imageUrl as string,
-            sessionId: data.sessionId as string
-          };
+        if (response.success === true && 'data' in response && isObjectWithStringProps(response.data)) {
+          console.debug('[Debug] Success response with data:', response.data);
+          
+          const data = response.data;
+          // Check if data contains our required fields directly
+          if ('imageUrl' in data && 'sessionId' in data) {
+            console.debug('[Debug] Found imageUrl and sessionId in data');
+            return {
+              imageUrl: data.imageUrl as string,
+              sessionId: data.sessionId as string
+            };
+          }
+        } else if (!response.success && 'error' in response && response.error) {
+          console.error('[Debug] API error response:', response.error);
+          throw new Error(
+            isObjectWithStringProps(response.error) && 'message' in response.error
+              ? response.error.message as string
+              : 'API Error'
+          );
         }
       }
       
-      // If we have direct access to the expected fields, return them
-      if (isObjectWithStringProps(responseData) && 
-          'imageUrl' in responseData && 'sessionId' in responseData) {
-        console.debug('[Debug] Found direct imageUrl and sessionId in response');
+      // CASE 2: Direct fields in response
+      if (isObjectWithStringProps(response) && 'imageUrl' in response && 'sessionId' in response) {
+        console.debug('[Debug] Found imageUrl and sessionId directly in response');
         return {
-          imageUrl: responseData.imageUrl as string,
-          sessionId: responseData.sessionId as string
+          imageUrl: response.imageUrl as string,
+          sessionId: response.sessionId as string
         };
       }
       
-      console.debug('[Debug] Direct fields not found, trying to extract from nested structure');
-      
-      // Try an even more flexible approach to find the fields
-      if (isObjectWithStringProps(responseData)) {
-        // Try to find the data in different possible locations based on the response structure
-        let extractedData = responseData;
+      // CASE 3: Flexible field search in response or nested objects
+      if (isObjectWithStringProps(response)) {
+        console.debug('[Debug] Searching for fields in response structure');
         
-        // Handle nested data structure
-        if ('data' in responseData && isObjectWithStringProps(responseData.data)) {
-          console.debug('[Debug] Found nested data object, extracting from there');
-          extractedData = responseData.data;
+        // Extract potential data object
+        let dataObject = response;
+        
+        // If there's a data field, focus on that
+        if ('data' in response && isObjectWithStringProps(response.data)) {
+          dataObject = response.data;
+          console.debug('[Debug] Focusing on data object:', dataObject);
         }
         
-        // Try to find image URL with various key formats
+        // Try to find fields with various naming conventions
         let imageUrl = '';
+        let sessionId = '';
+        
+        // Find imageUrl field
         for (const key of ['imageUrl', 'image_url', 'url', 'image', 'path', 'file_url']) {
-          if (key in extractedData && typeof extractedData[key] === 'string') {
-            imageUrl = extractedData[key] as string;
+          if (key in dataObject && typeof dataObject[key] === 'string') {
+            imageUrl = dataObject[key] as string;
             console.debug(`[Debug] Found image URL in field "${key}": ${imageUrl}`);
             break;
           }
         }
         
-        // Try to find session ID with various key formats
-        let sessionId = '';
+        // Find sessionId field
         for (const key of ['sessionId', 'session_id', 'id', 'session', 'uuid']) {
-          if (key in extractedData && typeof extractedData[key] === 'string') {
-            sessionId = extractedData[key] as string;
+          if (key in dataObject && typeof dataObject[key] === 'string') {
+            sessionId = dataObject[key] as string;
             console.debug(`[Debug] Found session ID in field "${key}": ${sessionId}`);
             break;
           }
         }
         
-        // If we still can't find the fields, try recursively searching in nested objects
-        if ((!imageUrl || !sessionId) && extractedData) {
-          console.debug('[Debug] Trying deep search for fields in nested objects');
-          for (const key in extractedData) {
-            const value = extractedData[key];
-            if (isObjectWithStringProps(value)) {
-              // Check this nested object for our fields
-              if (!imageUrl) {
-                for (const imgKey of ['imageUrl', 'image_url', 'url', 'image', 'path']) {
-                  if (imgKey in value && typeof value[imgKey] === 'string') {
-                    imageUrl = value[imgKey] as string;
-                    console.debug(`[Debug] Found nested image URL in ${key}.${imgKey}: ${imageUrl}`);
-                    break;
-                  }
-                }
-              }
-              
-              if (!sessionId) {
-                for (const sidKey of ['sessionId', 'session_id', 'id', 'session', 'uuid']) {
-                  if (sidKey in value && typeof value[sidKey] === 'string') {
-                    sessionId = value[sidKey] as string;
-                    console.debug(`[Debug] Found nested session ID in ${key}.${sidKey}: ${sessionId}`);
-                    break;
-                  }
-                }
-              }
+        // If we found both required fields
+        if (imageUrl && sessionId) {
+          console.debug('[Debug] Successfully extracted fields:', { imageUrl, sessionId });
+          return { imageUrl, sessionId };
+        }
+        
+        // Deep search in nested objects
+        const deepFind = (obj: Record<string, any>, target: string): string | null => {
+          if (!isObjectWithStringProps(obj)) return null;
+          
+          // Direct match
+          for (const key of Object.keys(obj)) {
+            if (key.toLowerCase().includes(target.toLowerCase()) && typeof obj[key] === 'string') {
+              return obj[key] as string;
             }
+          }
+          
+          // Recursive search
+          for (const key of Object.keys(obj)) {
+            if (isObjectWithStringProps(obj[key])) {
+              const result = deepFind(obj[key], target);
+              if (result) return result;
+            }
+          }
+          
+          return null;
+        };
+        
+        // Try deep search if we couldn't find them directly
+        if (!imageUrl) {
+          const found = deepFind(response, 'image');
+          if (found) {
+            imageUrl = found;
+            console.debug(`[Debug] Deep found image URL: ${imageUrl}`);
           }
         }
         
+        if (!sessionId) {
+          const found = deepFind(response, 'session');
+          if (found) {
+            sessionId = found;
+            console.debug(`[Debug] Deep found session ID: ${sessionId}`);
+          }
+        }
+        
+        // If we found both required fields via deep search
         if (imageUrl && sessionId) {
-          console.debug('[Debug] Successfully extracted values using flexible search');
+          console.debug('[Debug] Successfully extracted fields via deep search:', { imageUrl, sessionId });
           return { imageUrl, sessionId };
         }
       }
       
-      // As a last resort, if we only have a session ID but no image URL, 
-      // we could construct the image URL from the session ID if we know the pattern
-      if (isObjectWithStringProps(responseData)) {
-        let sessionId = '';
-        
-        // Try to find session ID anywhere in the response
-        const findSessionId = (obj: Record<string, any>, prefix = ''): void => {
-          if (!isObjectWithStringProps(obj)) return;
-          
-          for (const key in obj) {
-            const path = prefix ? `${prefix}.${key}` : key;
-            const value = obj[key];
-            
-            if (key.toLowerCase().includes('session') && typeof value === 'string') {
-              console.debug(`[Debug] Potential session ID found at ${path}: ${value}`);
-              sessionId = value;
-              return;
-            } else if (isObjectWithStringProps(value)) {
-              findSessionId(value, path);
-            }
-          }
-        };
-        
-        findSessionId(responseData);
-        
-        if (sessionId) {
-          // If we have a session ID but no image URL, we might be able to construct one
-          console.debug('[Debug] Found session ID but no image URL. Attempting to construct URL.');
-          // This is just an example pattern - adjust based on your actual URL structure
-          const constructedImageUrl = `${apiClient.defaults.baseURL}/images/${sessionId}`;
-          console.debug(`[Debug] Constructed image URL: ${constructedImageUrl}`);
-          
-          return {
-            sessionId,
-            imageUrl: constructedImageUrl
-          };
-        }
-      }
-      
-      console.error('[Debug] Failed to extract required data from response:', responseData);
+      // Log the full response for debugging
+      console.error('[Debug] Could not extract required fields from response:', response);
       throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('[Debug] Upload request failed:', error);
