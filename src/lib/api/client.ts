@@ -40,8 +40,9 @@ apiClient.interceptors.response.use(
     // Check if the response follows our standard format
     const apiResponse = response.data as StandardApiResponse;
     if (apiResponse && typeof apiResponse.success === 'boolean') {
-      if (apiResponse.success) {
+      if (apiResponse.success === true && apiResponse.data !== null && apiResponse.data !== undefined) {
         // Return just the data for successful requests
+        console.debug('[Debug] Extracted data from standardized response:', apiResponse.data);
         return apiResponse.data;
       } else if (apiResponse.error) {
         // For unsuccessful responses with 2xx status, create and throw an error
@@ -115,43 +116,68 @@ const api = {
       
       console.debug('[Debug] Upload response status:', response.status);
       console.debug('[Debug] Upload response data:', response.data);
+      console.debug('[Debug] Response type:', typeof response);
       
-      // Handle the standardized API response format
-      if (response.data && response.data.success === true && response.data.data) {
-        // The API returns { success: true, data: { imageUrl, sessionId }, error: null }
-        return response.data.data;
+      // The response should already be processed by our interceptor to extract data
+      // from the standardized API response format if it's available
+      
+      // Check for our specific API response format {success: true, data: {...}, error: null}
+      if (response && typeof response === 'object' && 
+          response.success === true && 
+          response.data && 
+          typeof response.data === 'object') {
+        console.debug('[Debug] Found standardized API response format');
+        
+        // Extract data from the nested data object
+        const data = response.data;
+        
+        if (data.imageUrl && data.sessionId) {
+          console.debug('[Debug] Successfully extracted fields from data object');
+          return {
+            imageUrl: data.imageUrl,
+            sessionId: data.sessionId
+          };
+        }
       }
       
-      // If response doesn't have the expected structure, log and handle appropriately
-      if (!response.data || (typeof response.data === 'object' && (!response.data.imageUrl || !response.data.sessionId))) {
-        console.error('[Debug] Upload response missing expected fields:', response.data);
+      // If we have direct access to the expected fields, return them
+      if (response && typeof response === 'object' && response.imageUrl && response.sessionId) {
+        console.debug('[Debug] Found direct imageUrl and sessionId in response');
+        return {
+          imageUrl: response.imageUrl,
+          sessionId: response.sessionId
+        };
+      }
+      
+      console.debug('[Debug] Direct fields not found, trying to extract from nested structure');
+      
+      // If the response has data but not in the expected format, try to extract it
+      // This is defensive coding to handle potential API inconsistencies
+      if (response && typeof response === 'object') {
+        // Try to find the data in different possible locations based on the response structure
+        let extractedData = response;
         
-        // If the response has data but not in the expected format, try to extract it
-        // This is just defensive coding to handle potential API inconsistencies
+        // Handle nested data structure
         if (response.data && typeof response.data === 'object') {
-          // Try to find the data in different possible locations based on the response format
-          let extractedData = response.data;
-          
-          // If the data is nested inside a 'data' property
-          if (response.data.data && typeof response.data.data === 'object') {
-            extractedData = response.data.data;
-          }
-          
-          const extracted = {
-            imageUrl: extractedData.imageUrl || extractedData.image_url || extractedData.url || '',
-            sessionId: extractedData.sessionId || extractedData.session_id || extractedData.id || ''
-          };
-          
-          if (extracted.imageUrl && extracted.sessionId) {
-            console.debug('[Debug] Extracted data from response:', extracted);
-            return extracted;
-          }
+          console.debug('[Debug] Found nested data object, extracting from there');
+          extractedData = response.data;
         }
         
-        throw new Error('Invalid response format from server');
+        const extracted = {
+          imageUrl: extractedData.imageUrl || extractedData.image_url || extractedData.url || '',
+          sessionId: extractedData.sessionId || extractedData.session_id || extractedData.id || ''
+        };
+        
+        console.debug('[Debug] Extracted values:', extracted);
+        
+        if (extracted.imageUrl && extracted.sessionId) {
+          console.debug('[Debug] Successfully extracted required fields');
+          return extracted;
+        }
       }
       
-      return response.data;
+      console.error('[Debug] Failed to extract required data from response:', response);
+      throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('[Debug] Upload request failed:', error);
       throw error;

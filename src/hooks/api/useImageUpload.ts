@@ -51,41 +51,25 @@ export function useImageUpload() {
         throw new Error('Empty response from server');
       }
       
-      let uploadResponse: UploadResponse | null = null;
-      
-      // Handle different response formats
-      if (typeof response === 'object') {
-        if (response.imageUrl && response.sessionId) {
-          uploadResponse = {
-            imageUrl: response.imageUrl,
-            sessionId: response.sessionId
-          };
-        } else {
-          console.debug('[Debug] Upload failed: Missing required fields', response);
-          console.error('[Debug] Response missing expected fields:', response);
-          throw new Error('Invalid response format from server');
-        }
-      } else {
-        console.debug('[Debug] Upload failed: Unexpected response type');
-        console.error('[Debug] Unexpected response type:', typeof response, response);
-        throw new Error('Unexpected response format from server');
-      }
-      
-      console.debug('[Debug] Processed upload response:', uploadResponse);
-      
-      if (!uploadResponse) {
-        console.debug('[Debug] Upload failed: Could not process response');
-        throw new Error('Failed to process upload response');
-      }
-      
-      // Update state with the response data
-      setCustomerImage(uploadResponse.imageUrl);
-      setSessionId(uploadResponse.sessionId);
+      // Check if the response has the required fields
+      if (typeof response === 'object' && response.imageUrl && response.sessionId) {
+        // Update state with the response data
+        setCustomerImage(response.imageUrl);
+        setSessionId(response.sessionId);
 
-      return {
-        imageUrl: uploadResponse.imageUrl,
-        sessionId: uploadResponse.sessionId
-      };
+        console.debug('[Debug] Upload successful:', { 
+          imageUrl: response.imageUrl, 
+          sessionId: response.sessionId 
+        });
+
+        return {
+          imageUrl: response.imageUrl,
+          sessionId: response.sessionId
+        };
+      } else {
+        console.debug('[Debug] Upload failed: Missing required fields', response);
+        throw new Error('Invalid response format from server');
+      }
 
     } catch (err) {
       console.debug('[Debug] Upload failed:', err);
