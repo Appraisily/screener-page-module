@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { AlertCircle, Search } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ImageUploader from '../components/ImageUploader';
@@ -6,7 +6,86 @@ import VisualSearchPanel from '../components/VisualSearchPanel';
 import ResultsDisplay from '../components/ResultsDisplay';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
+// Simple error boundary component
+class ErrorBoundary extends React.Component<{children: React.ReactNode, fallback: React.ReactNode}> {
+  state = { hasError: false, error: null };
+  
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Component error caught:", error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    
+    return this.props.children;
+  }
+}
+
 function HomePage() {
+  const [renderContent, setRenderContent] = useState(false);
+  
+  useEffect(() => {
+    console.log('HomePage initializing...');
+    // Delay rendering to ensure all CSS is loaded
+    const timer = setTimeout(() => {
+      setRenderContent(true);
+      console.log('HomePage content ready to render');
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Basic fallback content that will always render
+  const FallbackContent = () => (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-16 overflow-x-hidden">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 sm:py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-primary-900 mb-4">Art Screener</h1>
+          <p className="text-xl text-slate-600 mb-8">Upload your artwork for instant analysis</p>
+          <button 
+            className="px-4 py-2 bg-primary-900 text-white rounded-md shadow hover:bg-primary-800"
+            onClick={() => window.location.reload()}
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // If we're not ready to render yet, show a loading message
+  if (!renderContent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-primary-900 border-t-transparent rounded-full mb-4 mx-auto"></div>
+          <p className="text-xl text-primary-900">Loading application...</p>
+        </div>
+      </div>
+    );
+  }
+
+  try {
+    // Now that we're ready to render, try loading the actual content
+    return (
+      <ErrorBoundary fallback={<FallbackContent />}>
+        <MainContent />
+      </ErrorBoundary>
+    );
+  } catch (error) {
+    console.error("Error rendering HomePage:", error);
+    return <FallbackContent />;
+  }
+}
+
+// Separate the main content into its own component for better error isolation
+function MainContent() {
   const {
     uploadImage,
     startVisualSearch,
@@ -23,6 +102,13 @@ function HomePage() {
     error,
     searchResults
   } = useImageAnalysis();
+
+  console.log('MainContent hook state:', { 
+    hasSessionId: !!sessionId, 
+    hasImage: !!customerImage,
+    isUploading,
+    isSearching 
+  });
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (sessionId) {
@@ -90,12 +176,32 @@ function HomePage() {
           )}
 
           <div className="space-y-12">
-            <ImageUploader 
-              onUpload={uploadImage}
-              isUploading={isUploading}
-              customerImage={customerImage}
-              sessionId={sessionId}
-            />
+            <ErrorBoundary fallback={
+              <div className="text-center py-8">
+                <div className="text-error mb-4">
+                  <AlertCircle className="w-8 h-8 mx-auto" />
+                </div>
+                <h3 className="text-xl font-semibold text-primary-900 mb-2">
+                  Upload Component Error
+                </h3>
+                <p className="text-slate-600">
+                  There was an error loading the image uploader. 
+                  <button 
+                    className="underline text-primary-600 ml-2" 
+                    onClick={() => window.location.reload()}
+                  >
+                    Try refreshing
+                  </button>
+                </p>
+              </div>
+            }>
+              <ImageUploader 
+                onUpload={uploadImage}
+                isUploading={isUploading}
+                customerImage={customerImage}
+                sessionId={sessionId}
+              />
+            </ErrorBoundary>
 
             {customerImage && sessionId && !searchResults && !isSearching && (
               <div className="space-y-6">
@@ -142,15 +248,21 @@ function HomePage() {
             )}
 
             {searchResults && (
-              <ResultsDisplay
-                searchResults={searchResults}
-                sessionId={sessionId}
-                submitEmail={handleEmailSubmit}
-                onAnalyzeOrigin={analyzeOrigin}
-                isAnalyzingOrigin={isAnalyzingOrigin}
-                originResults={originResults}
-                isAnalyzing={false}
-              />
+              <ErrorBoundary fallback={
+                <div className="text-center py-8">
+                  <p className="text-error">There was an error displaying results</p>
+                </div>
+              }>
+                <ResultsDisplay
+                  searchResults={searchResults}
+                  sessionId={sessionId}
+                  submitEmail={handleEmailSubmit}
+                  onAnalyzeOrigin={analyzeOrigin}
+                  isAnalyzingOrigin={isAnalyzingOrigin}
+                  originResults={originResults}
+                  isAnalyzing={false}
+                />
+              </ErrorBoundary>
             )}
           </div>
         </div>

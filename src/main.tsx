@@ -29,9 +29,17 @@ try {
     throw new Error('Root element not found - cannot mount React application');
   }
   
+  // Determine if we need a basename
+  // If the URL contains /screener/, we use /screener as basename
+  // Otherwise we use no basename (for Netlify or other hosting)
+  const pathname = window.location.pathname;
+  const basename = pathname.includes('/screener') ? '/screener' : '/';
+  
+  console.log('Using basename:', basename);
+  
   createRoot(rootElement).render(
     <StrictMode>
-      <BrowserRouter basename='/screener'>
+      <BrowserRouter basename={basename}>
         <ToastProvider>
           <App />
         </ToastProvider>
