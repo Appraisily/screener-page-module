@@ -98,12 +98,42 @@ const api = {
     const formData = new FormData();
     formData.append('image', file);
     
-    const response = await apiClient.post('/upload-temp', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response; // The response interceptor will extract data
+    console.debug('[Debug] Making upload request to:', `${apiClient.defaults.baseURL}/upload-temp`);
+    
+    try {
+      const response = await apiClient.post('/upload-temp', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.debug('[Debug] Upload response status:', response.status);
+      console.debug('[Debug] Upload response data:', JSON.stringify(response.data, null, 2));
+      
+      // If response doesn't have the expected structure, log and handle appropriately
+      if (!response.data || !response.data.imageUrl || !response.data.sessionId) {
+        console.error('[Debug] Upload response missing expected fields:', response.data);
+        
+        // If the response has data but not in the expected format, try to extract it
+        // This is just defensive coding to handle potential API inconsistencies
+        if (response.data && typeof response.data === 'object') {
+          const extracted = {
+            imageUrl: response.data.imageUrl || response.data.image_url || response.data.url || '',
+            sessionId: response.data.sessionId || response.data.session_id || response.data.id || ''
+          };
+          
+          if (extracted.imageUrl && extracted.sessionId) {
+            console.debug('[Debug] Extracted data from response:', extracted);
+            return extracted;
+          }
+        }
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('[Debug] Upload request failed:', error);
+      throw error;
+    }
   },
   
   getSession: (sessionId: string) => apiClient.get(`/session/${sessionId}`),
