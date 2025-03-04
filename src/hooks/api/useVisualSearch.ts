@@ -24,7 +24,7 @@ export function useVisualSearch() {
   const startVisualSearch = useCallback(async (sessionId: string) => {
     if (!sessionId) return;
 
-    debug('Starting visual search', { sessionId });
+    debug('Starting visual search', { type: 'info', data: { sessionId } });
     setIsSearching(true);
 
     try {
@@ -33,7 +33,7 @@ export function useVisualSearch() {
       
       const processedResults = processResults(results);
       
-      debug('Search results processed', { processedResults });
+      debug('Search results processed', { type: 'info', data: { processedResults } });
       setSearchResults(processedResults);
     } catch (err) {
       debug('Visual search error', { type: 'error', data: err });
@@ -44,7 +44,7 @@ export function useVisualSearch() {
   }, [handleError]);
 
   const testVisualSearch = useCallback(async (testSessionId: string) => {
-    debug('Starting test visual search', { sessionId: testSessionId });
+    debug('Starting test visual search', { type: 'info', data: { sessionId: testSessionId } });
     setIsSearching(true);
     let processedResults = null;
 
@@ -54,7 +54,7 @@ export function useVisualSearch() {
       
       processedResults = processResults(results);
       
-      debug('Test search results processed', { processedResults });
+      debug('Test search results processed', { type: 'info', data: { processedResults } });
       setSearchResults(processedResults);
     } catch (err) {
       debug('Test visual search error', { type: 'error', data: err });
