@@ -38,17 +38,24 @@ apiClient.interceptors.response.use(
     console.debug(`[Debug] API Response (${response.config.url}):`, response.status, response.data);
     
     // Check if the response follows our standard format
-    const apiResponse = response.data as StandardApiResponse;
-    if (apiResponse && typeof apiResponse.success === 'boolean') {
-      if (apiResponse.success === true && apiResponse.data !== null && apiResponse.data !== undefined) {
+    const responseData = response.data;
+    if (responseData && typeof responseData === 'object' && 
+        'success' in responseData && typeof responseData.success === 'boolean') {
+      
+      if (responseData.success === true && 
+          'data' in responseData && 
+          responseData.data !== null && 
+          responseData.data !== undefined) {
         // Return just the data for successful requests
-        console.debug('[Debug] Extracted data from standardized response:', apiResponse.data);
-        return apiResponse.data;
-      } else if (apiResponse.error) {
+        console.debug('[Debug] Extracted data from standardized response:', responseData.data);
+        return responseData.data;
+      } else if ('error' in responseData && responseData.error) {
         // For unsuccessful responses with 2xx status, create and throw an error
-        const error = new Error(apiResponse.error.message || 'Unknown error') as ApiError;
-        error.code = apiResponse.error.code || 'UNKNOWN_ERROR';
-        error.details = apiResponse.error.details || null;
+        const error = new Error(
+          responseData.error.message || 'Unknown error'
+        ) as ApiError;
+        error.code = responseData.error.code || 'UNKNOWN_ERROR';
+        error.details = responseData.error.details || null;
         error.response = response;
         return Promise.reject(error);
       }
@@ -72,8 +79,10 @@ apiClient.interceptors.response.use(
     
     // Handle API errors with error response format
     const responseData = error.response.data as any;
-    if (responseData && responseData.error) {
-      const apiError = new Error(responseData.error.message || 'An error occurred') as ApiError;
+    if (responseData && typeof responseData === 'object' && 'error' in responseData && responseData.error) {
+      const apiError = new Error(
+        responseData.error.message || 'An error occurred'
+      ) as ApiError;
       apiError.code = responseData.error.code;
       apiError.details = responseData.error.details;
       apiError.status = error.response.status;
@@ -116,22 +125,20 @@ const api = {
       
       console.debug('[Debug] Upload response status:', response.status);
       console.debug('[Debug] Upload response data:', response.data);
-      console.debug('[Debug] Response type:', typeof response);
-      
-      // The response should already be processed by our interceptor to extract data
-      // from the standardized API response format if it's available
+      console.debug('[Debug] Response type:', typeof response.data);
       
       // Check for our specific API response format {success: true, data: {...}, error: null}
-      if (response && typeof response === 'object' && 
-          response.success === true && 
-          response.data && 
-          typeof response.data === 'object') {
+      const responseData = response.data;
+      if (responseData && typeof responseData === 'object' && 
+          'success' in responseData && responseData.success === true && 
+          'data' in responseData && responseData.data && 
+          typeof responseData.data === 'object') {
         console.debug('[Debug] Found standardized API response format');
         
         // Extract data from the nested data object
-        const data = response.data;
+        const data = responseData.data;
         
-        if (data.imageUrl && data.sessionId) {
+        if ('imageUrl' in data && 'sessionId' in data) {
           console.debug('[Debug] Successfully extracted fields from data object');
           return {
             imageUrl: data.imageUrl,
@@ -141,11 +148,12 @@ const api = {
       }
       
       // If we have direct access to the expected fields, return them
-      if (response && typeof response === 'object' && response.imageUrl && response.sessionId) {
+      if (responseData && typeof responseData === 'object' && 
+          'imageUrl' in responseData && 'sessionId' in responseData) {
         console.debug('[Debug] Found direct imageUrl and sessionId in response');
         return {
-          imageUrl: response.imageUrl,
-          sessionId: response.sessionId
+          imageUrl: responseData.imageUrl,
+          sessionId: responseData.sessionId
         };
       }
       
@@ -153,19 +161,30 @@ const api = {
       
       // If the response has data but not in the expected format, try to extract it
       // This is defensive coding to handle potential API inconsistencies
-      if (response && typeof response === 'object') {
+      if (responseData && typeof responseData === 'object') {
         // Try to find the data in different possible locations based on the response structure
-        let extractedData = response;
+        let extractedData = responseData;
         
         // Handle nested data structure
-        if (response.data && typeof response.data === 'object') {
+        if ('data' in responseData && responseData.data && typeof responseData.data === 'object') {
           console.debug('[Debug] Found nested data object, extracting from there');
-          extractedData = response.data;
+          extractedData = responseData.data;
         }
         
+        // Extract using various potential property names
+        const imageUrl = 
+          ('imageUrl' in extractedData) ? extractedData.imageUrl : 
+          ('image_url' in extractedData) ? extractedData.image_url : 
+          ('url' in extractedData) ? extractedData.url : '';
+          
+        const sessionId = 
+          ('sessionId' in extractedData) ? extractedData.sessionId : 
+          ('session_id' in extractedData) ? extractedData.session_id : 
+          ('id' in extractedData) ? extractedData.id : '';
+        
         const extracted = {
-          imageUrl: extractedData.imageUrl || extractedData.image_url || extractedData.url || '',
-          sessionId: extractedData.sessionId || extractedData.session_id || extractedData.id || ''
+          imageUrl,
+          sessionId
         };
         
         console.debug('[Debug] Extracted values:', extracted);
@@ -176,7 +195,7 @@ const api = {
         }
       }
       
-      console.error('[Debug] Failed to extract required data from response:', response);
+      console.error('[Debug] Failed to extract required data from response:', responseData);
       throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('[Debug] Upload request failed:', error);
@@ -186,13 +205,15 @@ const api = {
   
   getSession: (sessionId: string) => apiClient.get(`/session/${sessionId}`),
   
-  submitEmail: (data: { email: string, sessionId: string }) => apiClient.post('/submit-email', data),
+  submitEmail: (data: { email: string, sessionId: string, name?: string, subscribeToNewsletter?: boolean }) => apiClient.post('/submit-email', data),
   
-  runVisualSearch: (sessionId: string) => apiClient.post(`/visual-search/${sessionId}`),
+  runVisualSearch: (sessionId: string) => apiClient.post('/visual-search', { sessionId }),
   
-  getOriginAnalysis: (sessionId: string) => apiClient.get(`/origin-analysis/${sessionId}`),
+  getOriginAnalysis: (sessionId: string) => apiClient.post('/origin-analysis', { sessionId }),
 
-  analyzeWithOpenAI: (sessionId: string) => apiClient.post(`/openai-analysis/${sessionId}`),
+  analyzeWithOpenAI: (sessionId: string) => apiClient.post('/full-analysis', { sessionId }),
+  
+  findValue: (sessionId: string) => apiClient.post('/find-value', { sessionId }),
 };
 
 export default api; 

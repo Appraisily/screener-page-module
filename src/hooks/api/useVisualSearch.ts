@@ -10,14 +10,16 @@ export function useVisualSearch() {
   const { handleError } = useErrorHandler();
 
   const processResults = (results: any): SearchResults => {
+    // Extract the fields we need from the visual search results
+    // according to the API documentation
     return {
-      openai: results?.openai,
-      description: results?.vision?.description,
+      openai: results?.openai || {},
+      description: results?.vision?.description || {},
       webEntities: results?.vision?.webEntities || [],
       webLabels: results?.vision?.webLabels || [],
       derivedSubjects: results?.vision?.derivedSubjects || [],
-      matches: results?.vision?.matches,
-      pagesWithMatchingImages: results?.vision?.pagesWithMatchingImages
+      matches: results?.vision?.matches || { exact: [], partial: [], similar: [] },
+      pagesWithMatchingImages: results?.vision?.pagesWithMatchingImages || []
     };
   };
 
@@ -28,16 +30,26 @@ export function useVisualSearch() {
     setIsSearching(true);
 
     try {
-      // Use the new API client
-      const results = await api.runVisualSearch(sessionId);
+      // Call API with updated endpoint
+      const response = await api.runVisualSearch(sessionId);
       
-      const processedResults = processResults(results);
-      
-      debug('Search results processed', { type: 'info', data: { processedResults } });
-      setSearchResults(processedResults);
+      // Handle the standardized response format
+      if (response && response.results) {
+        const processedResults = processResults(response.results);
+        debug('Search results processed', { type: 'info', data: { processedResults } });
+        setSearchResults(processedResults);
+        return processedResults;
+      } else {
+        debug('Invalid visual search response format', {
+          type: 'warning',
+          data: { response }
+        });
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
       debug('Visual search error', { type: 'error', data: err });
       handleError(err as ApiError);
+      return null;
     } finally {
       setIsSearching(false);
     }
@@ -49,19 +61,28 @@ export function useVisualSearch() {
     let processedResults = null;
 
     try {
-      // Use the new API client
-      const results = await api.runVisualSearch(testSessionId);
+      // Call API with updated endpoint
+      const response = await api.runVisualSearch(testSessionId);
       
-      processedResults = processResults(results);
-      
-      debug('Test search results processed', { type: 'info', data: { processedResults } });
-      setSearchResults(processedResults);
+      // Handle the standardized response format
+      if (response && response.results) {
+        processedResults = processResults(response.results);
+        debug('Test search results processed', { type: 'info', data: { processedResults } });
+        setSearchResults(processedResults);
+        return processedResults;
+      } else {
+        debug('Invalid test visual search response format', {
+          type: 'warning',
+          data: { response }
+        });
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
       debug('Test visual search error', { type: 'error', data: err });
       handleError(err as ApiError);
+      return null;
     } finally {
       setIsSearching(false);
-      return processedResults;
     }
   }, [handleError]);
 

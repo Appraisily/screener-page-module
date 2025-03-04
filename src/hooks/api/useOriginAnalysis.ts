@@ -19,12 +19,21 @@ export function useOriginAnalysis() {
     debug('Starting origin analysis', { type: 'info', data: { sessionId } });
 
     try {
-      // Use the new API client
+      // Use the API client with updated endpoint
       const response = await api.getOriginAnalysis(sessionId);
       
       debug('Origin analysis results received', { type: 'info' });
-      // Extract the data from the response
-      setOriginResults(response.data as OriginResults);
+      
+      // Extract origin data from the standardized response format
+      if (response && response.origin) {
+        setOriginResults(response.origin as OriginResults);
+      } else {
+        debug('Invalid origin analysis response format', { 
+          type: 'warning',
+          data: { response }
+        });
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
       debug('Origin analysis error', { type: 'error', data: err });
       handleError(err as ApiError);

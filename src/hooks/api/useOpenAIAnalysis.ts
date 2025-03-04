@@ -10,26 +10,40 @@ export function useOpenAIAnalysis() {
   const { handleError } = useErrorHandler();
 
   const analyzeWithOpenAI = useCallback(async (sessionId: string) => {
-    if (!sessionId) return;
+    if (!sessionId) return null;
 
     setIsAnalyzingWithOpenAI(true);
-    debug('Starting OpenAI analysis', { 
+    debug('Starting full analysis with OpenAI', { 
       type: 'info',
       data: { sessionId }
     });
 
     try {
-      // Use the API client to call OpenAI analysis
+      // Use the API client with the correct endpoint name from API docs
       const response = await api.analyzeWithOpenAI(sessionId);
       
-      // Extract the data from the response
-      const results = response.data;
-      
-      setOpenAIResults(results);
-      return results;
-
+      // Handle the standardized response format per API docs
+      if (response && response.data && response.data.detailedAnalysis) {
+        const results = response.data.detailedAnalysis;
+        debug('Full analysis results received', { 
+          type: 'info',
+          data: { resultKeys: Object.keys(results) }
+        });
+        setOpenAIResults(results as OpenAIAnalysisResults);
+        return results;
+      } else {
+        debug('Invalid full analysis response format', {
+          type: 'warning',
+          data: { response }
+        });
+        throw new Error('Invalid response format from server');
+      }
     } catch (err) {
       const error = err as ApiError;
+      debug('Full analysis error', { 
+        type: 'error',
+        data: { message: error.message, code: error.code }
+      });
       handleError(error);
       setOpenAIResults(null);
       return null;
