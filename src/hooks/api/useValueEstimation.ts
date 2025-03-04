@@ -26,6 +26,13 @@ interface ValueEstimationResults {
   auctionResultsCount: number;
 }
 
+// Define the API response type
+interface ValueEstimationResponse {
+  success: boolean;
+  message?: string;
+  results: ValueEstimationResults;
+}
+
 export function useValueEstimation() {
   const [isEstimating, setIsEstimating] = useState(false);
   const [valueResults, setValueResults] = useState<ValueEstimationResults | null>(null);
@@ -42,17 +49,17 @@ export function useValueEstimation() {
 
     try {
       // Call the find-value endpoint
-      const response = await api.findValue(sessionId);
+      const response = await api.findValue<ValueEstimationResponse>(sessionId);
       
       debug('Value estimation results received', { type: 'info' });
       
       // Handle the standardized response format
       if (response && response.results) {
-        setValueResults(response.results as ValueEstimationResults);
-        return response.results as ValueEstimationResults;
+        setValueResults(response.results);
+        return response.results;
       } else {
         debug('Invalid value estimation response format', {
-          type: 'warning',
+          type: 'warn',
           data: { response }
         });
         throw new Error('Invalid response format from server');

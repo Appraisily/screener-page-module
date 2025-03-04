@@ -104,10 +104,10 @@ apiClient.interceptors.response.use(
 
 // API method wrappers
 const api = {
-  get: (url: string, config?: any) => apiClient.get(url, config),
-  post: (url: string, data?: any, config?: any) => apiClient.post(url, data, config),
-  put: (url: string, data?: any, config?: any) => apiClient.put(url, data, config),
-  delete: (url: string, config?: any) => apiClient.delete(url, config),
+  get: <T = any>(url: string, config?: any): Promise<T> => apiClient.get(url, config),
+  post: <T = any>(url: string, data?: any, config?: any): Promise<T> => apiClient.post(url, data, config),
+  put: <T = any>(url: string, data?: any, config?: any): Promise<T> => apiClient.put(url, data, config),
+  delete: <T = any>(url: string, config?: any): Promise<T> => apiClient.delete(url, config),
   
   // Custom methods for specific endpoints with proper return types
   uploadImage: async (file: File) => {
@@ -203,17 +203,22 @@ const api = {
     }
   },
   
-  getSession: (sessionId: string) => apiClient.get(`/session/${sessionId}`),
+  getSession: <T = any>(sessionId: string): Promise<T> => apiClient.get(`/session/${sessionId}`),
   
-  submitEmail: (data: { email: string, sessionId: string, name?: string, subscribeToNewsletter?: boolean }) => apiClient.post('/submit-email', data),
+  submitEmail: <T = any>(data: { email: string, sessionId: string, name?: string, subscribeToNewsletter?: boolean }): Promise<T> => 
+    apiClient.post('/submit-email', data),
   
-  runVisualSearch: (sessionId: string) => apiClient.post('/visual-search', { sessionId }),
+  runVisualSearch: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/visual-search', { sessionId }),
   
-  getOriginAnalysis: (sessionId: string) => apiClient.post('/origin-analysis', { sessionId }),
+  getOriginAnalysis: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/origin-analysis', { sessionId }),
 
-  analyzeWithOpenAI: (sessionId: string) => apiClient.post('/full-analysis', { sessionId }),
+  analyzeWithOpenAI: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/full-analysis', { sessionId }),
   
-  findValue: (sessionId: string) => apiClient.post('/find-value', { sessionId }),
+  findValue: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/find-value', { sessionId }),
 };
 
 export default api; 

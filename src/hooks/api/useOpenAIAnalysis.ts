@@ -4,6 +4,15 @@ import api from '../../lib/api/client';
 import { useErrorHandler, ApiError } from '../useErrorHandler';
 import { OpenAIAnalysisResults } from '../../types';
 
+// Define the API response type
+interface OpenAIAnalysisResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    detailedAnalysis: OpenAIAnalysisResults;
+  };
+}
+
 export function useOpenAIAnalysis() {
   const [isAnalyzingWithOpenAI, setIsAnalyzingWithOpenAI] = useState(false);
   const [openAIResults, setOpenAIResults] = useState<OpenAIAnalysisResults | null>(null);
@@ -20,7 +29,7 @@ export function useOpenAIAnalysis() {
 
     try {
       // Use the API client with the correct endpoint name from API docs
-      const response = await api.analyzeWithOpenAI(sessionId);
+      const response = await api.analyzeWithOpenAI<OpenAIAnalysisResponse>(sessionId);
       
       // Handle the standardized response format per API docs
       if (response && response.data && response.data.detailedAnalysis) {
@@ -29,11 +38,11 @@ export function useOpenAIAnalysis() {
           type: 'info',
           data: { resultKeys: Object.keys(results) }
         });
-        setOpenAIResults(results as OpenAIAnalysisResults);
+        setOpenAIResults(results);
         return results;
       } else {
         debug('Invalid full analysis response format', {
-          type: 'warning',
+          type: 'warn',
           data: { response }
         });
         throw new Error('Invalid response format from server');

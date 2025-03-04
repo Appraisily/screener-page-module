@@ -4,6 +4,15 @@ import type { OriginResults } from '../../types';
 import api from '../../lib/api/client';
 import { useErrorHandler, ApiError } from '../useErrorHandler';
 
+// Define the API response type
+interface OriginAnalysisResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    origin: OriginResults;
+  };
+}
+
 export function useOriginAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [originResults, setOriginResults] = useState<OriginResults | null>(null);
@@ -20,16 +29,16 @@ export function useOriginAnalysis() {
 
     try {
       // Use the API client with updated endpoint
-      const response = await api.getOriginAnalysis(sessionId);
+      const response = await api.getOriginAnalysis<OriginAnalysisResponse>(sessionId);
       
       debug('Origin analysis results received', { type: 'info' });
       
       // Extract origin data from the standardized response format
-      if (response && response.origin) {
-        setOriginResults(response.origin as OriginResults);
+      if (response && response.data && response.data.origin) {
+        setOriginResults(response.data.origin);
       } else {
         debug('Invalid origin analysis response format', { 
-          type: 'warning',
+          type: 'warn',
           data: { response }
         });
         throw new Error('Invalid response format from server');

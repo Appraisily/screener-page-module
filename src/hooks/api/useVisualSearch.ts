@@ -4,6 +4,29 @@ import type { SearchResults } from '../../types';
 import api from '../../lib/api/client';
 import { useErrorHandler, ApiError } from '../useErrorHandler';
 
+// Define the API response type
+interface VisualSearchResponse {
+  success: boolean;
+  message?: string;
+  results: {
+    vision?: {
+      description?: any;
+      webEntities?: any[];
+      webLabels?: any[];
+      derivedSubjects?: any[];
+      matches?: {
+        exact: any[];
+        partial: any[];
+        similar: any[];
+      };
+      pagesWithMatchingImages?: any[];
+    };
+    openai?: any;
+    analyzed?: boolean;
+    analysisTimestamp?: number;
+  };
+}
+
 export function useVisualSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
@@ -31,7 +54,7 @@ export function useVisualSearch() {
 
     try {
       // Call API with updated endpoint
-      const response = await api.runVisualSearch(sessionId);
+      const response = await api.runVisualSearch<VisualSearchResponse>(sessionId);
       
       // Handle the standardized response format
       if (response && response.results) {
@@ -41,7 +64,7 @@ export function useVisualSearch() {
         return processedResults;
       } else {
         debug('Invalid visual search response format', {
-          type: 'warning',
+          type: 'warn',
           data: { response }
         });
         throw new Error('Invalid response format from server');
@@ -62,7 +85,7 @@ export function useVisualSearch() {
 
     try {
       // Call API with updated endpoint
-      const response = await api.runVisualSearch(testSessionId);
+      const response = await api.runVisualSearch<VisualSearchResponse>(testSessionId);
       
       // Handle the standardized response format
       if (response && response.results) {
@@ -72,7 +95,7 @@ export function useVisualSearch() {
         return processedResults;
       } else {
         debug('Invalid test visual search response format', {
-          type: 'warning',
+          type: 'warn',
           data: { response }
         });
         throw new Error('Invalid response format from server');
