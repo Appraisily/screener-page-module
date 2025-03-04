@@ -89,7 +89,7 @@ const ToolPanel: React.FC<ToolPanelProps> = ({ itemType, sessionId }) => {
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 group-hover:text-[#007bff] transition-colors">
+              <h3 className="font-medium text-gray-900 group-hover:text-gray-800 transition-colors">
                 {tool.title}
               </h3>
               <p className="text-sm text-gray-500">{tool.description}</p>

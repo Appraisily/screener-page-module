@@ -36,7 +36,7 @@ export default function Navbar() {
               />
               <div className="flex flex-col">
                 <span className="text-xl font-semibold text-gray-900">Appraisily</span>
-                <span className="text-xs text-[#007bff]">AI Art Screener</span>
+                <span className="text-xs text-gray-900">AI Art Screener</span>
               </div>
             </a>
           </div>
@@ -47,7 +47,7 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-gray-700 hover:text-[#007bff] transition-colors"
+                className="text-gray-700 hover:text-gray-900 transition-colors"
               >
                 {link.name}
               </a>
@@ -70,7 +70,7 @@ export default function Navbar() {
             </a>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#007bff] focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 focus:outline-none"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -86,7 +86,7 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className="block px-3 py-2 text-gray-700 hover:text-[#007bff] hover:bg-gray-50"
+                className="block px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 onClick={() => setIsOpen(false)}
               >
                 {link.name}

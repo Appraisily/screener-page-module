@@ -70,7 +70,7 @@ function HomePage({ apiUrl }: HomePageProps) {
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">
                   Fast, Free Screening for Art & Antiques
                 </h1>
-                <p className="text-xl text-[#007bff]">
+                <p className="text-xl text-gray-700">
                   by Appraisily
                 </p>
               </div>
@@ -136,8 +136,8 @@ function HomePage({ apiUrl }: HomePageProps) {
                     await testVisualSearch(testId);
                   }
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 
-                         bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white 
+                         bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 
                          disabled:cursor-not-allowed"
                 disabled={isSearching}
               >

@@ -1,16 +1,22 @@
 import { useState, useCallback } from 'react';
 import { debug } from '../utils/debug';
+import api from '../../lib/api/client';
+import { useErrorHandler, ApiError } from '../useErrorHandler';
 
-export function useImageUpload(apiUrl: string) {
+interface UploadResponse {
+  imageUrl: string;
+  sessionId: string;
+}
+
+export function useImageUpload() {
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [customerImage, setCustomerImage] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
 
   const uploadImage = useCallback(async (file: File) => {
     if (!file) return;
 
-    setError(null);
     setIsUploading(true);
     debug('Starting image upload', { 
       type: 'info',
@@ -30,43 +36,33 @@ export function useImageUpload(apiUrl: string) {
         throw new Error('Please upload an image file');
       }
 
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch(`${apiUrl}/upload-temp`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Use the new API client
+      const response = await api.uploadImage(file) as UploadResponse;
       
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to upload image');
-      }
+      setCustomerImage(response.imageUrl);
+      setSessionId(response.sessionId);
 
-      setCustomerImage(data.imageUrl);
-      setSessionId(data.sessionId);
+      return {
+        imageUrl: response.imageUrl,
+        sessionId: response.sessionId
+      };
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      const error = err as ApiError;
+      handleError(error);
       setCustomerImage(null);
       setSessionId(null);
+      return null;
     } finally {
       setIsUploading(false);
     }
-  }, [apiUrl]);
+  }, [handleError]);
 
   return {
     uploadImage,
     isUploading,
-    error,
     customerImage,
     sessionId,
-    setError,
     setSessionId,
     setCustomerImage
   };

@@ -30,37 +30,45 @@ const ArtScreener = ({ apiUrl, sessionId: initialSessionId }: ArtScreenerProps) 
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 sm:py-16">
         <header className="mx-auto max-w-3xl text-center mb-16">
-          <div className="flex flex-col items-center justify-center gap-6">
+          <div className="flex flex-col items-center justify-center gap-8">
             <div className="w-20 h-20 bg-gray-900 rounded-lg flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-12 h-12 text-white" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">
-                Fast, Free Screening for Art & Antiques
+                Unlock the Secrets of Your Art & Antiques
               </h1>
-              <p className="text-xl text-[#007bff]">
-                by Appraisily
+              <p className="text-xl text-gray-700">
+                Get a Professional Value Estimate in Minutes – No Sign-Up Required
+              </p>
+              <p className="text-sm text-gray-500">
+                Powered by <span className="font-semibold">APPRAISILY.COM</span> – the ultimate tool in art appraisal
               </p>
             </div>
 
             <p className="text-lg text-gray-600 max-w-2xl">
-              See if your item's worth further appraisal. Get instant insights using our proprietary tools to help determine authenticity and potential value.
+              Discover if your artwork is worth more than you think. Our AI-powered analysis provides instant insights into authenticity and potential value – completely free, no obligations.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
+            
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#007bff]" />
-                <span className="text-gray-600">Free instant analysis</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-900" />
+                <span className="text-gray-700">Free instant analysis</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#007bff]" />
-                <span className="text-gray-600">No sign-up required</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-900" />
+                <span className="text-gray-700">No credit card required</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#007bff]" />
-                <span className="text-gray-600">Professional insights</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-900" />
+                <span className="text-gray-700">Expert insights</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-900" />
+                <span className="text-gray-700">AI-powered accuracy</span>
               </div>
             </div>
           </div>

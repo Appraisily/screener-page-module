@@ -45,10 +45,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       
       {/* Email Confirmation */}
       {emailSubmitted && (
-        <div className="mx-auto max-w-2xl bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-100">
+        <div className="mx-auto max-w-2xl bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200">
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
-              <Mail className="w-6 h-6 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100">
+              <Mail className="w-6 h-6 text-gray-700" />
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-medium text-gray-900">
@@ -104,8 +104,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 href="https://www.appraisily.com/pick-your-appraisal-type/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-[#007bff] 
-                         bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white
+                         bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
               >
                 Learn More About Professional Appraisals
                 <ArrowRight className="w-4 h-4" />

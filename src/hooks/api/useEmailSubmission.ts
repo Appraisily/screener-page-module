@@ -1,52 +1,41 @@
 import { useState, useCallback } from 'react';
 import { debug } from '../utils/debug';
+import api from '../../lib/api/client';
+import { useErrorHandler, ApiError } from '../useErrorHandler';
 
-export function useEmailSubmission(apiUrl: string) {
+export function useEmailSubmission() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const { handleError } = useErrorHandler();
 
   const submitEmail = useCallback(async (email: string, sessionId: string): Promise<boolean> => {
     if (!sessionId) return false;
 
-    setError(null);
     setIsSubmitting(true);
+    debug('Submitting email', { 
+      type: 'info',
+      data: { email, sessionId }
+    });
 
     try {
-      const response = await fetch(`${apiUrl}/submit-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, sessionId })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Use the new API client
+      await api.submitEmail({ email, sessionId });
       
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit email');
-      }
-
       setUserEmail(email);
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit email');
+      const error = err as ApiError;
+      handleError(error);
       return false;
     } finally {
       setIsSubmitting(false);
     }
-  }, [apiUrl]);
+  }, [handleError]);
 
   return {
     submitEmail,
     isSubmitting,
-    error,
     userEmail,
-    setError,
     setUserEmail
   };
 }

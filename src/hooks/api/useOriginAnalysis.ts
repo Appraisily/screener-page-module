@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { debug } from '../utils/debug';
 import type { OriginResults } from '../../types';
+import api from '../../lib/api/client';
+import { useErrorHandler, ApiError } from '../useErrorHandler';
 
-export function useOriginAnalysis(apiUrl: string) {
+export function useOriginAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [originResults, setOriginResults] = useState<OriginResults | null>(null);
+  const { handleError } = useErrorHandler();
 
   const analyzeOrigin = useCallback(async (sessionId: string) => {
     if (!sessionId) {
@@ -13,42 +15,27 @@ export function useOriginAnalysis(apiUrl: string) {
       return;
     }
 
-    setError(null);
     setIsAnalyzing(true);
+    debug('Starting origin analysis', { type: 'info', data: { sessionId } });
 
     try {
-      const response = await fetch(`${apiUrl}/origin-analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ sessionId })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.message || 'Origin analysis failed');
-      }
-
-      setOriginResults(data.results);
+      // Use the new API client
+      const response = await api.getOriginAnalysis(sessionId);
+      
+      debug('Origin analysis results received', { type: 'info' });
+      // Extract the data from the response
+      setOriginResults(response.data as OriginResults);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Origin analysis failed');
+      debug('Origin analysis error', { type: 'error', data: err });
+      handleError(err as ApiError);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [apiUrl]);
+  }, [handleError]);
 
   return {
     analyzeOrigin,
     isAnalyzing,
-    error,
-    originResults,
-    setError,
-    setOriginResults
+    originResults
   };
 }

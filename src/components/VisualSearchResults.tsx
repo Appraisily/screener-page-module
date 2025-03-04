@@ -55,8 +55,8 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
       {((results.description?.labels?.length ?? 0) > 0 || (results.webEntities?.length ?? 0) > 0) && (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#007bff]" />
+            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-gray-900" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Key Characteristics</h3>
@@ -72,11 +72,11 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
                   {(results.webEntities ?? []).map((entity, index) => (
                     <div 
                       key={index}
-                      className="relative flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group"
+                      className="relative flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-all group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-blue-200 transition-colors">
-                          <span className="text-sm font-medium text-blue-600">
+                        <div className="w-8 h-8 rounded-md bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-gray-300 transition-colors">
+                          <span className="text-sm font-medium text-gray-900">
                             {Math.round(entity.score * 100)}%
                           </span>
                         </div>
@@ -115,8 +115,8 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
                       key={index}
                       className={cn(
                         "inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium",
-                        "bg-blue-50/50 text-blue-700 border border-blue-200/50",
-                        "hover:bg-blue-100/50 transition-colors"
+                        "bg-gray-100 text-gray-700 border border-gray-200/50",
+                        "hover:bg-gray-200 transition-colors"
                       )}
                     >
                       {label}
@@ -130,8 +130,8 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             {results.matches?.similar && (results.matches.similar?.length ?? 0) > 0 && (
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <Fingerprint className="w-5 h-5 text-[#007bff]" />
+                  <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <Fingerprint className="w-5 h-5 text-gray-900" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Similar Items Found</h3>
@@ -142,7 +142,7 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
                   {(results.matches?.similar ?? []).map((match, index) => (
                     <div 
                       key={index}
-                      className="relative rounded-xl overflow-hidden aspect-square group hover:shadow-lg transition-all border border-gray-100 hover:border-blue-200"
+                      className="relative rounded-xl overflow-hidden aspect-square group hover:shadow-lg transition-all border border-gray-100 hover:border-gray-300"
                     >
                       <img
                         src={match.url}

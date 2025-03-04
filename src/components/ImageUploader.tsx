@@ -43,15 +43,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
   return (
     <div className="mx-auto max-w-2xl">
       <div
-        className={`rounded-2xl bg-white p-4 sm:p-8 shadow-lg ring-1 transition-all duration-200 ${
+        className={`rounded-2xl bg-white p-6 sm:p-10 shadow-xl ring-1 transition-all duration-200 ${
           isUploading
-            ? 'ring-[rgb(0,123,255)]'
-            : 'ring-gray-200 hover:ring-[rgb(0,123,255)]'
+            ? 'ring-gray-800'
+            : 'ring-gray-200 hover:ring-gray-800'
         }`}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
       >
-        <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex flex-col items-center justify-center space-y-6">
           {customerImage ? (
             <div className="relative w-full">
               <img
@@ -65,9 +65,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
               />
               {sessionId && (
                 <div className="mt-4 text-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                    <span className="text-sm font-medium text-gray-600">Session ID:</span>
-                    <code className="px-2 py-1 bg-white rounded text-sm font-mono text-blue-600">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="text-sm font-medium text-gray-700">Session ID:</span>
+                    <code className="px-2 py-1 bg-white rounded text-sm font-mono text-gray-800">
                       {sessionId}
                     </code>
                   </div>
@@ -76,10 +76,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
               {isUploading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
                   <div className="text-center space-y-3">
-                    <Loader2 className="w-8 h-8 text-[rgb(0,123,255)] animate-spin mx-auto" />
+                    <Loader2 className="w-8 h-8 text-gray-900 animate-spin mx-auto" />
                     <div className="bg-white/90 px-4 py-2 rounded-full shadow-sm">
-                      <p className="text-sm font-medium text-gray-700">Processing image...</p>
-                      <p className="text-xs text-gray-500">Getting AI analysis results</p>
+                      <p className="text-sm font-medium text-gray-800">Processing image...</p>
+                      <p className="text-xs text-gray-600">Getting AI analysis results</p>
                     </div>
                   </div>
                 </div>
@@ -87,19 +87,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
             </div>
           ) : (
             <>
-              <div className="rounded-lg bg-[rgb(0,123,255)]/10 p-3">
+              <div className="rounded-full bg-gray-900 p-4">
                 {isUploading ? (
-                  <Loader2 className="w-6 h-6 text-[rgb(0,123,255)] animate-spin" />
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
                 ) : (
-                  <Upload className="w-6 h-6 text-[rgb(0,123,255)]" />
+                  <Upload className="w-8 h-8 text-white" />
                 )}
               </div>
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {isUploading ? 'Uploading item...' : 'Drop your item here (art or antique)'}
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {isUploading ? 'Analyzing your item...' : 'Upload Your Art or Antique'}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {isUploading ? 'Please wait while we process your image' : 'or click to select a file'}
+                <p className="mt-2 text-base text-gray-600">
+                  {isUploading ? 'Please wait while our AI analyzes your image' : 'Drag & drop your photo or click to browse'}
                 </p>
                 <p className="mt-4 text-xs text-gray-500">
                   Supported formats: JPEG, PNG, WebP (max 5MB)
@@ -118,15 +118,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, isUploading, cu
           />
           <label
             htmlFor="file-upload"
-            className={`rounded-md px-6 py-3 text-lg font-semibold shadow-sm 
+            className={`rounded-md px-8 py-4 text-lg font-semibold shadow-sm 
                      transition-all duration-200 cursor-pointer flex items-center gap-2
                      ${isUploading 
                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                       : 'bg-[rgb(0,123,255)] text-white hover:bg-[rgb(0,123,255)]/90'}`}
+                       : 'bg-gray-900 text-white hover:bg-gray-800'}`}
             onClick={handleClick}
           >
-            <ImageIcon className="w-4 h-4" />
-            {customerImage ? 'Upload Another Item' : 'Select Item'}
+            <ImageIcon className="w-5 h-5" />
+            {customerImage ? 'Upload Another Item' : 'Select Photo'}
           </label>
         </div>
       </div>

@@ -39,14 +39,14 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-6">
-        <Mail className="w-5 h-5 text-[#007bff]" />
-        <h3 className="text-lg font-semibold text-gray-900">Get Your Full Report</h3>
+        <Mail className="w-5 h-5 text-gray-900" />
+        <h3 className="text-lg font-semibold text-gray-900">Get Your Complete Analysis Report</h3>
       </div>
 
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-600">
-            Enter your email to receive your complete artwork analysis report, including:
+            Enter your email to receive your comprehensive art analysis report, including:
           </p>
           <ul className="mt-2 space-y-1 list-disc list-inside text-sm text-gray-600">
             <li>Detailed artwork evaluation</li>
@@ -70,7 +70,7 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
               placeholder="Enter your email address"
               className={`block w-full rounded-lg border ${
                 error ? 'border-red-300' : 'border-gray-200'
-              } px-4 py-3 text-sm placeholder:text-gray-400 focus:border-[#007bff] focus:outline-none focus:ring-1 focus:ring-[#007bff]`}
+              } px-4 py-3 text-sm placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900`}
               disabled={isLoading}
             />
             {error && (
@@ -81,7 +81,7 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#007bff] px-4 py-3 text-sm font-semibold text-white hover:bg-[#007bff]/90 focus:outline-none focus:ring-2 focus:ring-[#007bff]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? (
               'Processing...'
@@ -96,11 +96,11 @@ const EmailCollector: React.FC<EmailCollectorProps> = ({ onSubmit, isLoading = f
 
         <p className="text-xs text-gray-500 mt-4">
           By continuing, you agree to our{' '}
-          <a href="#" className="text-[#007bff] hover:underline">
+          <a href="#" className="text-gray-900 hover:underline">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="text-[#007bff] hover:underline">
+          <a href="#" className="text-gray-900 hover:underline">
             Privacy Policy
           </a>
           .

@@ -31,9 +31,9 @@ const Panel: React.FC<PanelProps> = ({
   };
 
   const getIconColor = () => {
-    if (isActive) return 'text-[#007bff] animate-pulse';
-    if (isComplete) return 'text-[#007bff]';
-    return 'text-gray-400 group-hover:text-[#007bff]';
+    if (isActive) return 'text-gray-900 animate-pulse';
+    if (isComplete) return 'text-gray-900';
+    return 'text-gray-400 group-hover:text-gray-900';
   };
 
   return (

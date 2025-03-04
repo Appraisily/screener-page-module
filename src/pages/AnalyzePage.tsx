@@ -56,7 +56,7 @@ function AnalyzePage() {
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
                 Analyzing Your Artwork
               </h1>
-              <p className="text-2xl font-semibold mt-2 text-[rgb(0,123,255)]">
+              <p className="text-2xl font-semibold mt-2 text-gray-900">
                 AI-Powered Analysis in Progress
               </p>
             </div>

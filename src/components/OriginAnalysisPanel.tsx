@@ -59,7 +59,7 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
     return (
       <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
         <div 
-          className="bg-[#007bff] h-2 rounded-full transition-all duration-500"
+          className="bg-gray-900 h-2 rounded-full transition-all duration-500"
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -100,13 +100,13 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
       <div 
         onClick={handleClick}
         className={`relative p-6 cursor-pointer border-b ${
-          isAnalyzing ? 'border-[#007bff]' : 'border-gray-100 hover:border-[#007bff]'
+          isAnalyzing ? 'border-gray-900' : 'border-gray-100 hover:border-gray-900'
         }`}
       >
         {isAnalyzing && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-[#007bff] border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
               <p className="text-sm font-medium text-gray-600">Analyzing origin...</p>
             </div>
           </div>
@@ -128,9 +128,9 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             <div>
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 Origin Analysis
-                <MapPin className="h-5 w-5 text-[#007bff]" aria-hidden="true" />
+                <MapPin className="h-5 w-5 text-gray-900" aria-hidden="true" />
                 {isAnalyzing && (
-                  <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#007bff] border-r-transparent"></span>
+                  <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-900 border-r-transparent"></span>
                 )}
               </h3>
               <p className="text-sm text-gray-500 mt-1">
@@ -148,7 +148,7 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             {results.openaiAnalysis && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-[#007bff]" />
+                  <Sparkles className="w-5 h-5 text-gray-900" />
                   <h4 className="font-medium text-gray-900">AI Analysis</h4>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -161,10 +161,10 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-[#007bff]" />
+                  <Star className="w-5 h-5 text-gray-900" />
                   <h4 className="font-medium text-gray-900">Originality Assessment</h4>
                 </div>
-                <span className="text-sm font-medium text-[#007bff]">
+                <span className="text-sm font-medium text-gray-900">
                   {Math.round(results.originAnalysis.confidence * 100)}% Confidence
                 </span>
               </div>
@@ -177,7 +177,7 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             {/* Style Analysis */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-[#007bff]" />
+                <Sparkles className="w-5 h-5 text-gray-900" />
                 <h4 className="font-medium text-gray-900">Style Analysis</h4>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -188,13 +188,13 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             {/* Unique Characteristics */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Fingerprint className="w-5 h-5 text-[#007bff]" />
+                <Fingerprint className="w-5 h-5 text-gray-900" />
                 <h4 className="font-medium text-gray-900">Unique Characteristics</h4>
               </div>
               <ul className="space-y-2">
                 {results.originAnalysis.unique_characteristics.map((char, index) => (
                   <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#007bff] mt-1.5 flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-900 mt-1.5 flex-shrink-0" />
                     {char}
                   </li>
                 ))}
@@ -204,7 +204,7 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             {/* Comparison Notes */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-[#007bff]" />
+                <AlertCircle className="w-5 h-5 text-gray-900" />
                 <h4 className="font-medium text-gray-900">Analysis Notes</h4>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -213,8 +213,8 @@ const OriginAnalysisPanel: React.FC<OriginAnalysisPanelProps> = ({
             </div>
 
             {/* Recommendation */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-medium text-[#007bff] mb-2">Recommendation</h4>
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-2">Recommendation</h4>
               <p className="text-sm text-gray-700">
                 {results.originAnalysis.recommendation}
               </p>
