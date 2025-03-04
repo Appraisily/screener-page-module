@@ -5,11 +5,10 @@ import ResultsDisplay from './ResultsDisplay';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
 export interface ArtScreenerProps {
-  apiUrl?: string;
   sessionId?: string;
 }
 
-const ArtScreener = ({ apiUrl, sessionId: initialSessionId }: ArtScreenerProps) => {
+const ArtScreener = ({ sessionId: initialSessionId }: ArtScreenerProps) => {
   const {
     uploadImage,
     startVisualSearch,
@@ -24,7 +23,7 @@ const ArtScreener = ({ apiUrl, sessionId: initialSessionId }: ArtScreenerProps) 
     error,
     searchResults,
     currentStep
-  } = useImageAnalysis(apiUrl, initialSessionId);
+  } = useImageAnalysis(initialSessionId);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

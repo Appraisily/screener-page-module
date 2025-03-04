@@ -74,3 +74,9 @@ export interface ApiResponse<T = any> {
   error?: string;
   data?: T;
 }
+
+export interface OpenAIAnalysisResults {
+  description?: string;
+  analysis?: string;
+  confidence?: number;
+}

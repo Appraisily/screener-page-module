@@ -7,7 +7,7 @@ import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
 function AnalyzePage() {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionId: urlSessionId } = useParams<{ sessionId: string }>();
 
   const {
     isInitializing,
@@ -19,14 +19,14 @@ function AnalyzePage() {
     analyzeOrigin,
     isAnalyzingOrigin,
     originResults
-  } = useImageAnalysis(undefined, sessionId);
+  } = useImageAnalysis(urlSessionId);
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
-    if (sessionId) {
+    if (urlSessionId) {
       return await submitEmail(email);
     }
     return false;
-  }, [sessionId, submitEmail]);
+  }, [urlSessionId, submitEmail]);
 
   if (isInitializing) {
     return (
@@ -76,7 +76,7 @@ function AnalyzePage() {
             {customerImage && (
               <ResultsDisplay 
                 searchResults={searchResults}
-                sessionId={sessionId}
+                sessionId={urlSessionId}
                 submitEmail={submitEmail}
                 onAnalyzeOrigin={analyzeOrigin}
                 isAnalyzingOrigin={isAnalyzingOrigin}

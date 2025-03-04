@@ -37,14 +37,17 @@ export function useImageUpload() {
       }
 
       // Use the new API client
-      const response = await api.uploadImage(file) as UploadResponse;
+      const response = await api.uploadImage(file);
       
-      setCustomerImage(response.imageUrl);
-      setSessionId(response.sessionId);
+      // Cast the response to the expected type after ensuring it has the right structure
+      const uploadResponse = response as unknown as UploadResponse;
+      
+      setCustomerImage(uploadResponse.imageUrl);
+      setSessionId(uploadResponse.sessionId);
 
       return {
-        imageUrl: response.imageUrl,
-        sessionId: response.sessionId
+        imageUrl: uploadResponse.imageUrl,
+        sessionId: uploadResponse.sessionId
       };
 
     } catch (err) {

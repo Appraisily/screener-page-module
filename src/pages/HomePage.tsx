@@ -6,15 +6,7 @@ import VisualSearchPanel from '../components/VisualSearchPanel';
 import ResultsDisplay from '../components/ResultsDisplay';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
-interface HomePageProps {
-  apiUrl?: string;
-}
-
-interface HomePageProps {
-  apiUrl?: string;
-}
-
-function HomePage({ apiUrl }: HomePageProps) {
+function HomePage() {
   const {
     uploadImage,
     startVisualSearch,
@@ -30,7 +22,7 @@ function HomePage({ apiUrl }: HomePageProps) {
     originResults,
     error,
     searchResults
-  } = useImageAnalysis(apiUrl);
+  } = useImageAnalysis();
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (sessionId) {
@@ -47,12 +39,7 @@ function HomePage({ apiUrl }: HomePageProps) {
       customerImageUrl: customerImage
     });
   }, [sessionId, searchResults, customerImage]);
-  console.log('Search Results Structure:', {
-    full: searchResults,
-    openai: searchResults?.openai,
-    description: searchResults?.description,
-    labels: searchResults?.description?.labels
-  });
+  
   return (
     <>
       <Navbar />

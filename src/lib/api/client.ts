@@ -113,6 +113,8 @@ const api = {
   runVisualSearch: (sessionId: string) => apiClient.post(`/visual-search/${sessionId}`),
   
   getOriginAnalysis: (sessionId: string) => apiClient.get(`/origin-analysis/${sessionId}`),
+
+  analyzeWithOpenAI: (sessionId: string) => apiClient.post(`/openai-analysis/${sessionId}`),
 };
 
 export default api; 
