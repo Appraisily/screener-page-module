@@ -69,7 +69,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <OriginAnalysisPanel 
             onClick={() => onAnalyzeOrigin?.()}
             isAnalyzing={isAnalyzingOrigin}
-            results={originResults}
+            results={originResults as any}
           />
         </div>
       )}
@@ -78,9 +78,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {searchResults && !emailSubmitted && (
         <div className="mx-auto max-w-2xl mt-8">
           <EmailCollector 
-            onSubmit={(email) => {
+            onSubmit={async (email) => {
               setEmailSubmitted(true);
-              submitEmail(email); // Fire and forget
+              await submitEmail(email);
               return true;
             }}
             isLoading={isAnalyzing}

@@ -72,7 +72,6 @@ function AnalyzePage() {
           <div className="space-y-16">
             <Services 
               itemType={searchResults?.openai?.category || null}
-              submitEmail={handleEmailSubmit}
             />
             {customerImage && (
               <ResultsDisplay 

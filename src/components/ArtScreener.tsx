@@ -91,7 +91,7 @@ const ArtScreener = ({ apiUrl, sessionId: initialSessionId }: ArtScreenerProps) 
                 </p>
               </div>
               <div className="mx-auto max-w-2xl">
-                <VisualSearchPanel onClick={startVisualSearch} />
+                <VisualSearchPanel onClick={() => sessionId && startVisualSearch(sessionId)} isSearching={isSearching} />
               </div>
             </div>
           )}

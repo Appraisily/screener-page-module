@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 const IMAGEKIT_URL = 'https://ik.imagekit.io/appraisily/WebPage';
 
 interface VisualSearchPanelProps {
-  onClick: () => void;
+  onClick: (sessionId?: string) => void;
   isSearching?: boolean;
 }
 

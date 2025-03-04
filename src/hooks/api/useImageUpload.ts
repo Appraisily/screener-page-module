@@ -13,9 +13,12 @@ export function useImageUpload(apiUrl: string) {
     setError(null);
     setIsUploading(true);
     debug('Starting image upload', { 
-      fileName: file.name, 
-      fileSize: file.size, 
-      type: file.type 
+      type: 'info',
+      data: {
+        fileName: file.name, 
+        fileSize: file.size, 
+        fileType: file.type
+      }
     });
 
     try {

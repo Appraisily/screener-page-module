@@ -33,15 +33,39 @@ export interface SearchResults {
     partial: Array<{url: string; score: number; type: string; metadata: any}>;
     similar: Array<{url: string; score: number; type: string; metadata: any}>;
   };
+  pagesWithMatchingImages?: any; // Add this field to match the structure used in useVisualSearch
 }
 
-export interface OriginResults {
+export interface OriginAnalysisResult {
   originality: string;
   confidence: number;
   style_analysis: string;
   unique_characteristics: string[];
   comparison_notes: string;
   recommendation: string;
+}
+
+export interface OriginResults {
+  timestamp: number;
+  matches: {
+    exact: Array<{url: string; score: number; type: string; metadata: any}>;
+    partial: Array<{url: string; score: number; type: string; metadata: any}>;
+    similar: Array<{url: string; score: number; type: string; metadata: any}>;
+  };
+  originAnalysis: OriginAnalysisResult;
+  webEntities: Array<{
+    entityId: string;
+    score: number;
+    description: string;
+  }>;
+  visionLabels: {
+    labels: string[];
+    confidence: number;
+  };
+  openaiAnalysis: {
+    category: string;
+    description: string;
+  };
 }
 
 export interface ApiResponse<T = any> {

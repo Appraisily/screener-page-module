@@ -158,22 +158,13 @@ function HomePage({ apiUrl }: HomePageProps) {
 
             {searchResults && (
               <ResultsDisplay
-                similarImages={[]}
-                analysis={null}
-                enhancedAnalysis={null}
-                offerText={null}
-                onGenerateAnalysis={() => {}}
-                onEnhanceAnalysis={() => {}}
+                searchResults={searchResults}
+                sessionId={sessionId}
+                submitEmail={handleEmailSubmit}
                 onAnalyzeOrigin={analyzeOrigin}
                 isAnalyzingOrigin={isAnalyzingOrigin}
                 originResults={originResults}
                 isAnalyzing={false}
-                isEnhancing={false}
-                steps={[]}
-                itemType={null}
-                searchResults={searchResults}
-                sessionId={sessionId || null}
-                submitEmail={handleEmailSubmit}
               />
             )}
           </div>
