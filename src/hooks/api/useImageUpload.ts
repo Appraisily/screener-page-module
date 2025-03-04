@@ -51,23 +51,36 @@ export function useImageUpload() {
         throw new Error('Empty response from server');
       }
       
-      // Check if the response has the required fields
-      if (typeof response === 'object' && response.imageUrl && response.sessionId) {
-        // Update state with the response data
-        setCustomerImage(response.imageUrl);
-        setSessionId(response.sessionId);
+      // More flexible handling of response structure
+      // Just check that we at least have an object with both required properties
+      if (typeof response === 'object') {
+        const imageUrl = response.imageUrl || '';
+        const sessionId = response.sessionId || '';
+        
+        if (imageUrl && sessionId) {
+          // Update state with the response data
+          setCustomerImage(imageUrl);
+          setSessionId(sessionId);
 
-        console.debug('[Debug] Upload successful:', { 
-          imageUrl: response.imageUrl, 
-          sessionId: response.sessionId 
-        });
+          console.debug('[Debug] Upload successful:', { 
+            imageUrl, 
+            sessionId 
+          });
 
-        return {
-          imageUrl: response.imageUrl,
-          sessionId: response.sessionId
-        };
+          return {
+            imageUrl,
+            sessionId
+          };
+        } else {
+          console.debug('[Debug] Upload failed: Missing required fields', response);
+          const missingFields = [];
+          if (!imageUrl) missingFields.push('imageUrl');
+          if (!sessionId) missingFields.push('sessionId');
+          
+          throw new Error(`Missing required fields in response: ${missingFields.join(', ')}`);
+        }
       } else {
-        console.debug('[Debug] Upload failed: Missing required fields', response);
+        console.debug('[Debug] Upload failed: Response is not an object', response);
         throw new Error('Invalid response format from server');
       }
 
