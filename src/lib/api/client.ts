@@ -35,6 +35,8 @@ interface StandardApiResponse<T = any> {
 // Response interceptor for handling the standardized format
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    console.debug(`[Debug] API Response (${response.config.url}):`, response.status, response.data);
+    
     // Check if the response follows our standard format
     const apiResponse = response.data as StandardApiResponse;
     if (apiResponse && typeof apiResponse.success === 'boolean') {
@@ -55,6 +57,8 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
+    console.debug(`[Debug] API Error:`, error.message);
+    
     // Handle network errors
     if (!error.response) {
       const networkError = new Error('Unable to connect to the server. Please check your internet connection.') as ApiError;
@@ -62,6 +66,8 @@ apiClient.interceptors.response.use(
       networkError.originalError = error;
       return Promise.reject(networkError);
     }
+    
+    console.debug(`[Debug] API Error Response:`, error.response.status, error.response.data);
     
     // Handle API errors with error response format
     const responseData = error.response.data as any;
@@ -108,18 +114,32 @@ const api = {
       });
       
       console.debug('[Debug] Upload response status:', response.status);
-      console.debug('[Debug] Upload response data:', JSON.stringify(response.data, null, 2));
+      console.debug('[Debug] Upload response data:', response.data);
+      
+      // Handle the standardized API response format
+      if (response.data && response.data.success === true && response.data.data) {
+        // The API returns { success: true, data: { imageUrl, sessionId }, error: null }
+        return response.data.data;
+      }
       
       // If response doesn't have the expected structure, log and handle appropriately
-      if (!response.data || !response.data.imageUrl || !response.data.sessionId) {
+      if (!response.data || (typeof response.data === 'object' && (!response.data.imageUrl || !response.data.sessionId))) {
         console.error('[Debug] Upload response missing expected fields:', response.data);
         
         // If the response has data but not in the expected format, try to extract it
         // This is just defensive coding to handle potential API inconsistencies
         if (response.data && typeof response.data === 'object') {
+          // Try to find the data in different possible locations based on the response format
+          let extractedData = response.data;
+          
+          // If the data is nested inside a 'data' property
+          if (response.data.data && typeof response.data.data === 'object') {
+            extractedData = response.data.data;
+          }
+          
           const extracted = {
-            imageUrl: response.data.imageUrl || response.data.image_url || response.data.url || '',
-            sessionId: response.data.sessionId || response.data.session_id || response.data.id || ''
+            imageUrl: extractedData.imageUrl || extractedData.image_url || extractedData.url || '',
+            sessionId: extractedData.sessionId || extractedData.session_id || extractedData.id || ''
           };
           
           if (extracted.imageUrl && extracted.sessionId) {
@@ -127,6 +147,8 @@ const api = {
             return extracted;
           }
         }
+        
+        throw new Error('Invalid response format from server');
       }
       
       return response.data;

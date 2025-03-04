@@ -25,7 +25,8 @@ export function useImageAnalysis(initialSessionId?: string) {
     isUploading, 
     customerImage, 
     setSessionId: setUploadSessionId,
-    setCustomerImage 
+    setCustomerImage,
+    uploadError 
   } = useImageUpload();
   
   const { 
@@ -207,7 +208,8 @@ export function useImageAnalysis(initialSessionId?: string) {
     userEmail,
     openAIResults,
     
-    // Error state
-    error
+    // Error states
+    error,
+    uploadError
   };
 }

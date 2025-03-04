@@ -47,25 +47,36 @@ export function useImageUpload() {
       
       // Defensive coding to handle potential response format issues
       if (!response) {
+        console.debug('[Debug] Upload failed: Empty response');
         throw new Error('Empty response from server');
       }
       
-      let uploadResponse: UploadResponse;
+      let uploadResponse: UploadResponse | null = null;
       
       // Handle different response formats
       if (typeof response === 'object') {
         if (response.imageUrl && response.sessionId) {
-          uploadResponse = response as UploadResponse;
+          uploadResponse = {
+            imageUrl: response.imageUrl,
+            sessionId: response.sessionId
+          };
         } else {
+          console.debug('[Debug] Upload failed: Missing required fields', response);
           console.error('[Debug] Response missing expected fields:', response);
           throw new Error('Invalid response format from server');
         }
       } else {
+        console.debug('[Debug] Upload failed: Unexpected response type');
         console.error('[Debug] Unexpected response type:', typeof response, response);
         throw new Error('Unexpected response format from server');
       }
       
       console.debug('[Debug] Processed upload response:', uploadResponse);
+      
+      if (!uploadResponse) {
+        console.debug('[Debug] Upload failed: Could not process response');
+        throw new Error('Failed to process upload response');
+      }
       
       // Update state with the response data
       setCustomerImage(uploadResponse.imageUrl);
@@ -77,6 +88,7 @@ export function useImageUpload() {
       };
 
     } catch (err) {
+      console.debug('[Debug] Upload failed:', err);
       console.error('[Debug] Upload error:', err);
       const error = err as ApiError;
       const errorMessage = error.message || 'Failed to upload image';

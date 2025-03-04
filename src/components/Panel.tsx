@@ -19,28 +19,28 @@ const Panel: React.FC<PanelProps> = ({
   isComplete = false,
 }) => {
   const getBorderColor = () => {
-    if (isActive) return 'border-[#007bff] shadow-[#007bff]/10 ring-2 ring-[#007bff]/20';
-    if (isComplete) return 'border-[#007bff] shadow-[#007bff]/10';
-    return 'border-gray-100 hover:border-[#007bff]';
+    if (isActive) return 'border-secondary-500 shadow-secondary-500/10 ring-2 ring-secondary-500/20';
+    if (isComplete) return 'border-secondary-500 shadow-secondary-500/10';
+    return 'border-slate-100 hover:border-secondary-500';
   };
 
   const getIconBackground = () => {
-    if (isActive) return 'bg-[#007bff]/10';
-    if (isComplete) return 'bg-[#007bff]/5';
-    return 'bg-gray-50 group-hover:bg-[#007bff]/5';
+    if (isActive) return 'bg-secondary-500/10';
+    if (isComplete) return 'bg-secondary-500/5';
+    return 'bg-slate-50 group-hover:bg-secondary-500/5';
   };
 
   const getIconColor = () => {
-    if (isActive) return 'text-gray-900 animate-pulse';
-    if (isComplete) return 'text-gray-900';
-    return 'text-gray-400 group-hover:text-gray-900';
+    if (isActive) return 'text-primary-900 animate-pulse';
+    if (isComplete) return 'text-primary-900';
+    return 'text-slate-400 group-hover:text-primary-900';
   };
 
   return (
     <div
       className={`group relative bg-white rounded-xl shadow-sm border overflow-hidden
                  ${getBorderColor()} 
-                 hover:shadow-lg hover:shadow-[#007bff]/10 transition-all duration-300 transform hover:-translate-y-1`}
+                 hover:shadow-lg hover:shadow-secondary-500/10 transition-all duration-300 transform hover:-translate-y-1`}
     >
       {image && (
         <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity duration-300">
@@ -59,11 +59,11 @@ const Panel: React.FC<PanelProps> = ({
           <Icon className={`w-6 h-6 ${getIconColor()}`} />
         </div>
         
-        <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
+        <h3 className="font-semibold text-primary-900 mb-2">{title}</h3>
+        <p className="text-sm text-slate-600">{description}</p>
         
         {isActive && (
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-[#007bff]">
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-secondary-500">
             <div className="h-full bg-white/30 animate-[progress_2s_ease-in-out_infinite]" />
           </div>
         )}

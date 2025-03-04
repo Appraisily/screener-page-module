@@ -73,7 +73,7 @@ const ToolPanel: React.FC<ToolPanelProps> = ({ itemType, sessionId }) => {
       {tools.map((tool) => (
         <div
           key={tool.id}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 hover:border-[#007bff] 
+          className="bg-white rounded-xl shadow-sm border border-slate-100 hover:border-secondary-500 
                      transition-all duration-200 overflow-hidden group cursor-pointer"
         >
           <div className="p-4 flex items-start gap-4">
@@ -83,16 +83,16 @@ const ToolPanel: React.FC<ToolPanelProps> = ({ itemType, sessionId }) => {
                 alt={tool.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 to-transparent" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <tool.icon className="w-6 h-6 text-white" />
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 group-hover:text-gray-800 transition-colors">
+              <h3 className="font-medium text-primary-900 group-hover:text-primary-800 transition-colors">
                 {tool.title}
               </h3>
-              <p className="text-sm text-gray-500">{tool.description}</p>
+              <p className="text-sm text-slate-500">{tool.description}</p>
             </div>
           </div>
         </div>
