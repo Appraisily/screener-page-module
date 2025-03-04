@@ -53,4 +53,19 @@ export default {
     },
   },
   plugins: [],
+  safelist: [
+    // Add commonly used classes that might not be directly in the HTML
+    // This ensures they're included in the final CSS
+    'bg-primary-900',
+    'text-primary-900',
+    'bg-secondary-500',
+    'text-secondary-500',
+    'bg-slate-50',
+    'text-slate-600',
+    'text-slate-700',
+    'text-error',
+    'text-success',
+    'alert-error',
+    'alert-success'
+  ]
 }
