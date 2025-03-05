@@ -80,10 +80,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <div className="w-3/4 max-w-xs bg-gray-200 rounded-full h-2 mb-2">
               <div 
                 className="bg-primary-600 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${uploadProgress}%` }}
+                style={{ width: `${uploadProgress > 0 ? uploadProgress : 5}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+            <p className="text-sm text-gray-600">
+              {uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : 'Uploading...'}
+            </p>
           </div>
         )}
         
@@ -109,7 +111,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         {/* Display uploaded image */}
         {uploadedImageUrl ? (
-          <div className="relative w-full h-full min-h-[250px] flex items-center justify-center">
+          <div className="relative w-full h-full min-h-[250px] flex flex-col items-center justify-center">
+            {sessionId && (
+              <div className="mb-3 px-3 py-1.5 bg-primary-100 text-primary-800 rounded-md flex items-center">
+                <span className="font-medium text-sm">Session ID:</span>
+                <code className="ml-2 px-2 py-0.5 bg-white rounded font-mono text-xs">{sessionId}</code>
+              </div>
+            )}
             <img
               src={uploadedImageUrl}
               alt="Uploaded artwork"
@@ -119,11 +127,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 target.src = 'https://placehold.co/600x400?text=Image+Failed+to+Load';
               }}
             />
-            {sessionId && (
-              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                {sessionId.substring(0, 6)}...
-              </div>
-            )}
             <button 
               className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
               onClick={(e) => {

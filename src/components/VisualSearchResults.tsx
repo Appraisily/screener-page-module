@@ -33,6 +33,7 @@ interface VisualSearchResults {
     similar: Array<{url: string; score: number; type: string; metadata: any}>;
   };
   pagesWithMatchingImages?: Array<any>;
+  openAIResults?: any;
 }
 
 interface VisualSearchResultsProps {
@@ -46,8 +47,10 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
     <div className="space-y-6 overflow-x-hidden">
       {results?.openai && (
         <OpenAIAnalysis 
-          category={results.openai.category}
-          description={results.openai.description}
+          results={results.openAIResults || {
+            concise_description: results.openai.description,
+            subject_matter: results.openai.category
+          }}
         />
       )}
       

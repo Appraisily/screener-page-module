@@ -76,7 +76,21 @@ export interface ApiResponse<T = any> {
 }
 
 export interface OpenAIAnalysisResults {
-  description?: string;
-  analysis?: string;
-  confidence?: number;
+  concise_description?: string;
+  detailed_analysis?: string;
+  artist_identification?: {
+    artist_name?: string;
+    confidence?: number;
+    similar_artists?: string[];
+  };
+  style_period?: string;
+  subject_matter?: string;
+  composition?: string;
+  color_palette?: string;
+  condition_assessment?: string;
+  signature_analysis?: string;
+  framing_notes?: string;
+  provenance_indicators?: string;
+  market_relevance?: string;
+  additional_observations?: string;
 }

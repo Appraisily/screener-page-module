@@ -1,14 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useImageUpload } from './api/useImageUpload';
-import { useVisualSearch } from './api/useVisualSearch';
-import { useOriginAnalysis } from './api/useOriginAnalysis';
-import { useEmailSubmission } from './api/useEmailSubmission';
-import { useOpenAIAnalysis } from './api/useOpenAIAnalysis';
-import { useValueEstimation } from './api/useValueEstimation';
 import { debug } from './utils/debug';
-import { ApiError, useErrorHandler } from './useErrorHandler';
-import type { SearchResults, OriginResults } from '../types';
+import api from '../lib/api';
+import type { SearchResults, OriginResults, OpenAIAnalysisResults } from '../types';
 
 export function useImageAnalysis(initialSessionId?: string) {
   console.log('useImageAnalysis hook initialized with initialSessionId:', initialSessionId);
@@ -16,269 +10,243 @@ export function useImageAnalysis(initialSessionId?: string) {
   // Session management
   const [sessionId, setSessionId] = useState<string>(initialSessionId || '');
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   
-  // Error handling
-  const { handleError } = useErrorHandler();
+  // State for managing uploads and results
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [isAnalyzingOrigin, setIsAnalyzingOrigin] = useState<boolean>(false);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState<boolean>(false);
+  
+  // Data states
+  const [customerImage, setCustomerImage] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [originResults, setOriginResults] = useState<OriginResults | null>(null);
+  const [openAIResults, setOpenAIResults] = useState<OpenAIAnalysisResults | null>(null);
+  
+  // Error states
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // API hooks
-  console.log('Initializing API hooks...');
-  
-  const { 
-    uploadImage: uploadImageBase, 
-    isUploading, 
-    customerImage, 
-    setSessionId: setUploadSessionId,
-    setCustomerImage,
-    uploadError 
-  } = useImageUpload();
-  
-  const { 
-    startVisualSearch: searchVisually, 
-    testVisualSearch,
-    isSearching, 
-    searchResults 
-  } = useVisualSearch();
-  
-  const { 
-    analyzeOrigin: analyzeOriginBase, 
-    isAnalyzing: isAnalyzingOrigin, 
-    originResults 
-  } = useOriginAnalysis();
-  
-  const { 
-    submitEmail: submitEmailBase, 
-    isSubmitting, 
-    userEmail 
-  } = useEmailSubmission();
-  
-  const { 
-    analyzeWithOpenAI, 
-    isAnalyzingWithOpenAI, 
-    openAIResults 
-  } = useOpenAIAnalysis();
-
-  const {
-    estimateValue,
-    isEstimating,
-    valueResults
-  } = useValueEstimation();
-  
-  console.log('API hooks initialized successfully');
-
-  // Initialize session ID if not provided
+  // Initialize session id if not provided
   useEffect(() => {
-    console.log('useImageAnalysis initializing session ID effect');
-    
-    if (!initialSessionId) {
-      // Generate UUID only for initial setup
-      // This will be replaced by the server-provided ID after upload
+    if (!sessionId) {
       const newSessionId = uuidv4();
-      console.log('Generated new session ID:', newSessionId);
-      debug('Generated new session ID', { type: 'info', data: { sessionId: newSessionId } });
       setSessionId(newSessionId);
-      setUploadSessionId(newSessionId);
-    } else {
-      console.log('Using provided session ID:', initialSessionId);
-      setSessionId(initialSessionId);
-      setUploadSessionId(initialSessionId);
+      debug('Generated new session ID', { sessionId: newSessionId });
     }
-    
-    setIsInitializing(false);
-    console.log('Session initialization complete');
-    
-  }, [initialSessionId, setUploadSessionId]);
-
-  // Debug session state changes
-  useEffect(() => {
-    console.log('Session ID updated:', sessionId);
   }, [sessionId]);
-  
-  useEffect(() => {
-    console.log('Customer image updated:', customerImage ? 'Has image' : 'No image');
-  }, [customerImage]);
-  
-  useEffect(() => {
-    console.log('Search results updated:', searchResults ? 'Has results' : 'No results');
-  }, [searchResults]);
 
-  // Handle image upload with proper error management
+  /**
+   * Upload an image for analysis
+   */
   const uploadImage = useCallback(async (file: File) => {
-    console.log('uploadImage called with file:', file.name, file.type, file.size);
+    setIsUploading(true);
+    setUploadError(null);
     setError(null);
+    
     try {
-      console.log('Calling uploadImageBase...');
-      const result = await uploadImageBase(file);
-      console.log('Upload result:', result ? 'Success' : 'Failed');
+      debug('Starting image upload', { sessionId });
+      const result = await api.uploadImage(file, sessionId);
       
-      if (result) {
-        // Important: Update the session ID with the one returned from the server
-        console.log('Setting session ID from upload response:', result.sessionId);
+      // Update session id from response if different
+      if (result.sessionId && result.sessionId !== sessionId) {
         setSessionId(result.sessionId);
-        setCurrentStep(1);
-        
-        // Automatically start visual search after successful upload
-        console.log('Auto-starting visual search with session ID:', result.sessionId);
-        await searchVisually(result.sessionId);
-        console.log('Auto visual search completed');
-        setCurrentStep(2);
-        
-        // Also start OpenAI analysis
-        console.log('Auto-starting OpenAI analysis...');
-        await analyzeWithOpenAI(result.sessionId);
       }
+      
+      // Set the image URL
+      setCustomerImage(result.imageUrl);
+      
+      debug('Upload successful', { imageUrl: result.imageUrl });
+      
+      // Auto-start full analysis after upload
+      try {
+        debug('Auto-starting full analysis', { sessionId: result.sessionId });
+        const analysisResults = await api.fullAnalysis(result.sessionId);
+        setOpenAIResults(analysisResults);
+        console.log('Full analysis completed');
+        
+        // Auto-start visual search
+        console.log('Auto-starting visual search with session ID:', result.sessionId);
+        await startVisualSearch(result.sessionId);
+      } catch (analysisError) {
+        console.error('Auto-analysis failed:', analysisError);
+        // Continue with just the upload
+      }
+      
+      // Move to the next step
+      setCurrentStep(prev => Math.max(prev, 1));
       return result;
-    } catch (err) {
-      console.error('Upload error:', err);
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to upload image');
-      handleError(apiError);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Image upload failed';
+      setUploadError(errorMessage);
+      debug('Upload failed', { error: errorMessage });
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  }, [sessionId]);
+
+  /**
+   * Start visual similarity search
+   */
+  const startVisualSearch = useCallback(async (sid = sessionId) => {
+    if (!sid) {
+      setError('Session ID is required for visual search');
       return null;
     }
-  }, [uploadImageBase, searchVisually, analyzeWithOpenAI, handleError]);
-
-  // Handle visual search with proper session management
-  const startVisualSearch = useCallback(async (searchSessionId: string) => {
-    console.log('startVisualSearch called with session ID:', searchSessionId);
-    console.log('Current session ID in state:', sessionId);
     
-    // Use the current sessionId from state for consistency
-    const idToUse = sessionId || searchSessionId;
-    console.log('Using session ID for visual search:', idToUse);
+    setIsSearching(true);
+    setError(null);
     
-    setError(null);
     try {
-      console.log('Calling searchVisually...');
-      await searchVisually(idToUse);
-      console.log('Visual search completed');
-      setCurrentStep(2);
-    } catch (err) {
-      console.error('Visual search error:', err);
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to run visual search');
-      handleError(apiError);
-    }
-  }, [sessionId, searchVisually, handleError]);
-
-  // Handle origin analysis
-  const analyzeOrigin = useCallback(async () => {
-    console.log('analyzeOrigin called with session ID:', sessionId);
-    setError(null);
-    try {
-      console.log('Calling analyzeOriginBase...');
-      await analyzeOriginBase(sessionId);
-      console.log('Origin analysis completed');
-      setCurrentStep(3);
-    } catch (err) {
-      console.error('Origin analysis error:', err);
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to analyze origin');
-      handleError(apiError);
-    }
-  }, [sessionId, analyzeOriginBase, handleError]);
-
-  // Handle email submission
-  const submitEmail = useCallback(async (email: string) => {
-    console.log('submitEmail called with email:', email, 'and session ID:', sessionId);
-    setError(null);
-    try {
-      console.log('Calling submitEmailBase...');
-      const result = await submitEmailBase(email, sessionId);
-      console.log('Email submission result:', result ? 'Success' : 'Failed');
-      if (result) {
-        setCurrentStep(4);
+      debug('Starting visual search', { sessionId: sid });
+      const results = await api.visualSearch(sid);
+      
+      setSearchResults(results);
+      debug('Search results processed', { processedResults: results });
+      
+      // Auto-start value estimation after visual search
+      try {
+        debug('Automatically calling find-value endpoint after visual search', { sessionId: sid });
+        await api.valueEstimation(sid);
+      } catch (estimationError) {
+        debug('Automatic value estimation failed', { error: String(estimationError) });
+        // Continue with just the search results
       }
-      return result;
-    } catch (err) {
-      console.error('Email submission error:', err);
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to submit email');
-      handleError(apiError);
+      
+      // Move to the next step
+      setCurrentStep(prev => Math.max(prev, 2));
+      console.log('Visual search completed');
+      return results;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Visual search failed';
+      setError(errorMessage);
+      debug('Visual search failed', { error: errorMessage });
+      throw error;
+    } finally {
+      setIsSearching(false);
+    }
+  }, [sessionId]);
+
+  /**
+   * Analyze artwork origin
+   */
+  const analyzeOrigin = useCallback(async () => {
+    if (!sessionId) {
+      setError('Session ID is required for origin analysis');
+      return null;
+    }
+    
+    setIsAnalyzingOrigin(true);
+    setError(null);
+    
+    try {
+      debug('Starting origin analysis', { sessionId });
+      const results = await api.originAnalysis(sessionId);
+      
+      setOriginResults(results);
+      debug('Origin analysis completed', { results });
+      
+      // Move to the next step if higher
+      setCurrentStep(prev => Math.max(prev, 3));
+      return results;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Origin analysis failed';
+      setError(errorMessage);
+      debug('Origin analysis failed', { error: errorMessage });
+      throw error;
+    } finally {
+      setIsAnalyzingOrigin(false);
+    }
+  }, [sessionId]);
+
+  /**
+   * Submit user email for results
+   */
+  const submitEmail = useCallback(async (email: string) => {
+    if (!sessionId) {
+      setError('Session ID is required for email submission');
       return false;
     }
-  }, [sessionId, submitEmailBase, handleError]);
-
-  // Handle image analysis workflow
-  const analyzeImage = useCallback(async (file: File) => {
-    console.log('analyzeImage called with file:', file.name);
+    
+    setIsSubmittingEmail(true);
     setError(null);
+    
     try {
-      debug('Starting image analysis', { type: 'info', data: { sessionId } });
+      debug('Submitting email', { email, sessionId });
+      const success = await api.submitEmail(email, sessionId);
       
-      // Upload the image
-      console.log('Starting image upload step...');
-      const uploadResult = await uploadImage(file);
+      debug('Email submission completed', { success });
       
-      // If successful, proceed with visual search using the session ID from upload
-      if (uploadResult && uploadResult.sessionId) {
-        console.log('Starting visual search step with session ID:', uploadResult.sessionId);
-        await startVisualSearch(uploadResult.sessionId);
-        
-        // Run OpenAI analysis
-        console.log('Starting OpenAI analysis step...');
-        await analyzeWithOpenAI(uploadResult.sessionId);
-        
-        // Value estimation is now automatically triggered after visual search completes
-        // so we don't need to explicitly call it here anymore
-      } else if (customerImage && sessionId) {
-        // Fallback to current state if uploadResult structure is different
-        console.log('Starting visual search step with session ID from state:', sessionId);
-        await startVisualSearch(sessionId);
-        
-        // Run OpenAI analysis
-        console.log('Starting OpenAI analysis step...');
-        await analyzeWithOpenAI(sessionId);
-        
-        // Value estimation is now automatically triggered after visual search completes
-        // so we don't need to explicitly call it here anymore
-      }
-    } catch (err) {
-      console.error('Image analysis workflow error:', err);
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Image analysis failed');
-      handleError(apiError);
+      // Move to final step
+      setCurrentStep(prev => Math.max(prev, 4));
+      return success;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Email submission failed';
+      setError(errorMessage);
+      debug('Email submission failed', { error: errorMessage });
+      return false;
+    } finally {
+      setIsSubmittingEmail(false);
     }
-  }, [sessionId, customerImage, uploadImage, startVisualSearch, analyzeWithOpenAI, handleError]);
+  }, [sessionId]);
+
+  /**
+   * Test the visual search API (for development only)
+   */
+  const testVisualSearch = useCallback(async (testSessionId: string) => {
+    try {
+      debug('Testing visual search', { testSessionId });
+      const results = await api.visualSearch(testSessionId);
+      debug('Test results received', { results });
+      return results;
+    } catch (error) {
+      debug('Test search failed', { error });
+      throw error;
+    }
+  }, []);
+
+  // Reset state when session changes
+  useEffect(() => {
+    if (sessionId) {
+      debug('Session ID changed or initialized', { sessionId });
+    }
+  }, [sessionId]);
+
+  // Log when searchResults changes
+  useEffect(() => {
+    if (searchResults) {
+      console.log('Search results updated: Has results');
+    } else {
+      console.log('Search results updated: No results');
+    }
+  }, [searchResults]);
 
   return {
-    // Session info
+    // Session
     sessionId,
-    setSessionId,
     currentStep,
-    isInitializing,
     
-    // Core functions
-    analyzeImage,
-    runOriginAnalysis: analyzeOrigin,
-    submitUserEmail: submitEmail,
-    
-    // Exposed API functions for components
+    // Methods
     uploadImage,
     startVisualSearch,
-    testVisualSearch,
-    submitEmail,
     analyzeOrigin,
-    estimateValue,
+    submitEmail,
+    testVisualSearch,
+    setCustomerImage,
     
-    // Loading states
+    // Status
     isUploading,
     isSearching,
     isAnalyzingOrigin,
-    isSubmitting,
-    isAnalyzingWithOpenAI,
-    isEstimating,
     
-    // Results
+    // Data
     customerImage,
-    setCustomerImage,
     searchResults,
     originResults,
-    userEmail,
     openAIResults,
-    valueResults,
     
-    // Error states
+    // Errors
     error,
     uploadError
   };

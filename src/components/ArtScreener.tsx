@@ -24,7 +24,8 @@ const ArtScreener = ({ sessionId: initialSessionId }: ArtScreenerProps) => {
     searchResults,
     currentStep,
     uploadError,
-    setCustomerImage
+    setCustomerImage,
+    openAIResults
   } = useImageAnalysis(initialSessionId);
 
   return (
@@ -128,6 +129,7 @@ const ArtScreener = ({ sessionId: initialSessionId }: ArtScreenerProps) => {
               isAnalyzingOrigin={isAnalyzingOrigin}
               originResults={originResults}
               isAnalyzing={false}
+              openAIResults={openAIResults}
             />
           )}
         </div>

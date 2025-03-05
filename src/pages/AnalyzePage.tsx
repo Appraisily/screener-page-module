@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -8,9 +8,9 @@ import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
 function AnalyzePage() {
   const { sessionId: urlSessionId } = useParams<{ sessionId: string }>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
-    isInitializing,
     customerImage,
     error,
     currentStep,
@@ -18,8 +18,18 @@ function AnalyzePage() {
     submitEmail,
     analyzeOrigin,
     isAnalyzingOrigin,
-    originResults
+    originResults,
+    openAIResults
   } = useImageAnalysis(urlSessionId);
+
+  // Set loading state based on data readiness
+  useEffect(() => {
+    if (urlSessionId && customerImage) {
+      setIsLoading(false);
+    } else if (searchResults) {
+      setIsLoading(false);
+    }
+  }, [urlSessionId, customerImage, searchResults]);
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (urlSessionId) {
@@ -28,7 +38,7 @@ function AnalyzePage() {
     return false;
   }, [urlSessionId, submitEmail]);
 
-  if (isInitializing) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -82,6 +92,7 @@ function AnalyzePage() {
                 isAnalyzingOrigin={isAnalyzingOrigin}
                 originResults={originResults}
                 isAnalyzing={false}
+                openAIResults={openAIResults}
               />
             )}
           </div>

@@ -7,9 +7,23 @@ interface DebugOptions {
   data?: any;
 }
 
-export const debug = (message: string, options?: DebugOptions) => {
-  if (import.meta.env.MODE !== 'production') {
-    const { type = 'info', data } = options || {};
+/**
+ * Debug utility function for consistent logging across the application
+ * 
+ * @param message The debug message to log
+ * @param options Optional configuration or data to include with the message
+ */
+export const debug = (message: string, options?: DebugOptions | Record<string, any>) => {
+  // Only log in development mode or if explicitly enabled
+  if (import.meta.env.MODE !== 'production' || import.meta.env.VITE_DEBUG === 'true') {
+    // If options is just a data object (not DebugOptions)
+    if (options && !('type' in options) && !('data' in options)) {
+      console.log(`[Debug] ${message}`, options || '');
+      return;
+    }
+    
+    // Handle as DebugOptions
+    const { type = 'info', data } = (options as DebugOptions) || {};
     
     switch (type) {
       case 'warn':
@@ -19,7 +33,7 @@ export const debug = (message: string, options?: DebugOptions) => {
         console.error(`[Debug] ${message}`, data);
         break;
       default:
-        console.debug(`[Debug] ${message}`, data);
+        console.log(`[Debug] ${message}`, data);
     }
   }
 };

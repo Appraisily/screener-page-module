@@ -4,7 +4,7 @@ import AppraiserProfile from './AppraiserProfile';
 import VisualSearchResults from './VisualSearchResults';
 import OriginAnalysisPanel from './OriginAnalysisPanel';
 import EmailCollector from './EmailCollector';
-import type { SearchResults, OriginResults } from '../types';
+import type { SearchResults, OriginResults, OpenAIAnalysisResults } from '../types';
 
 interface ResultsDisplayProps {
   searchResults?: SearchResults | null;
@@ -14,6 +14,7 @@ interface ResultsDisplayProps {
   isAnalyzing: boolean;
   isAnalyzingOrigin?: boolean;
   originResults?: OriginResults | null;
+  openAIResults?: OpenAIAnalysisResults | null;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
@@ -23,7 +24,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onAnalyzeOrigin,
   isAnalyzing,
   isAnalyzingOrigin,
-  originResults
+  originResults,
+  openAIResults
 }) => {
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   
@@ -32,15 +34,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       hasSearchResults: !!searchResults,
       sessionId,
       emailSubmitted,
-      searchResultsKeys: searchResults ? Object.keys(searchResults) : []
+      searchResultsKeys: searchResults ? Object.keys(searchResults) : [],
+      hasOpenAIResults: !!openAIResults
     });
-  }, [searchResults, sessionId, emailSubmitted]);
+  }, [searchResults, sessionId, emailSubmitted, openAIResults]);
 
   return (
     <div className="space-y-12">
       {/* Visual Search Results */}
       <div className="overflow-x-hidden">
-        {searchResults && <VisualSearchResults results={searchResults} />}
+        {searchResults && <VisualSearchResults results={{...searchResults, openAIResults}} />}
       </div>
       
       {/* Email Confirmation */}
