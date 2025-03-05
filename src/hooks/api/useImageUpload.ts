@@ -77,8 +77,11 @@ export function useImageUpload() {
       setSessionId(sessionId);
 
       debug('Image upload successful', { 
-        type: 'success',
-        data: { imageUrl, sessionId }
+        type: 'info',
+        data: { 
+          imageUrl: imageUrl,
+          sessionId: sessionId 
+        }
       });
 
       return { imageUrl, sessionId };

@@ -4,7 +4,7 @@ import api from '../../lib/api/client';
 import { useErrorHandler, ApiError } from '../useErrorHandler';
 
 // Interface for value estimation results based on API docs
-interface ValueEstimationResults {
+export interface ValueEstimationResults {
   timestamp: number;
   query: string;
   estimatedValueRange: {

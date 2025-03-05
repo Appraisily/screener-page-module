@@ -198,11 +198,11 @@ const api = {
         console.debug('[Debug] Searching for fields in response structure');
         
         // Extract potential data object
-        let dataObject = response;
+        let dataObject: Record<string, any> = response as Record<string, any>;
         
         // If there's a data field, focus on that
         if ('data' in response && isObjectWithStringProps(response.data)) {
-          dataObject = response.data;
+          dataObject = response.data as Record<string, any>;
           console.debug('[Debug] Focusing on data object:', dataObject);
         }
         
@@ -212,8 +212,8 @@ const api = {
         
         // Find imageUrl field
         for (const key of ['imageUrl', 'image_url', 'url', 'image', 'path', 'file_url']) {
-          if (key in dataObject && typeof dataObject[key] === 'string') {
-            imageUrl = dataObject[key] as string;
+          if (key in dataObject && typeof (dataObject as Record<string, any>)[key] === 'string') {
+            imageUrl = (dataObject as Record<string, any>)[key] as string;
             console.debug(`[Debug] Found image URL in field "${key}": ${imageUrl}`);
             break;
           }
@@ -221,8 +221,8 @@ const api = {
         
         // Find sessionId field
         for (const key of ['sessionId', 'session_id', 'id', 'session', 'uuid']) {
-          if (key in dataObject && typeof dataObject[key] === 'string') {
-            sessionId = dataObject[key] as string;
+          if (key in dataObject && typeof (dataObject as Record<string, any>)[key] === 'string') {
+            sessionId = (dataObject as Record<string, any>)[key] as string;
             console.debug(`[Debug] Found session ID in field "${key}": ${sessionId}`);
             break;
           }

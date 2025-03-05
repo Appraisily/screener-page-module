@@ -100,14 +100,21 @@ function MainContent() {
     isAnalyzingOrigin,
     originResults,
     error,
-    searchResults
+    searchResults,
+    isEstimating,
+    valueResults,
+    uploadError,
+    setCustomerImage
   } = useImageAnalysis();
 
   console.log('MainContent hook state:', { 
     hasSessionId: !!sessionId, 
     hasImage: !!customerImage,
     isUploading,
-    isSearching 
+    isSearching,
+    hasSearchResults: !!searchResults,
+    isEstimating,
+    hasValueResults: !!valueResults
   });
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
@@ -133,36 +140,33 @@ function MainContent() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 sm:py-16">
           <header className="mx-auto max-w-3xl text-center mb-16">
             <div className="flex flex-col items-center justify-center gap-6">
-              <div className="w-20 h-20 bg-primary-900 rounded-lg flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-12 h-12 text-white" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-
-              <div className="space-y-2">
-                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-primary-900">
+              <div className="space-y-3">
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-primary-900 bg-clip-text text-transparent bg-gradient-to-r from-primary-800 to-primary-600">
                   Fast, Free Screening for Art & Antiques
                 </h1>
-                <p className="text-xl text-slate-700">
-                  by Appraisily
+                <p className="text-xl text-slate-700 font-medium">
+                  Expert Art & Antique Analysis by Appraisily
                 </p>
               </div>
 
-              <p className="text-lg text-slate-600 max-w-2xl">
-                See if your item's worth further appraisal. Get instant insights using our proprietary tools.
+              <div className="h-px w-24 bg-gradient-to-r from-transparent via-secondary-400 to-transparent my-2"></div>
+
+              <p className="text-lg text-slate-600 max-w-2xl leading-relaxed">
+                Discover if your treasured items hold hidden value. Our AI-powered tools provide instant professional insights to guide your next steps.
               </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm px-4">
+              
+              <div className="flex flex-wrap justify-center gap-6 text-sm px-4 pt-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500" />
-                  <span className="text-slate-600">Free instant analysis</span>
+                  <span className="w-2 h-2 rounded-full bg-secondary-500" />
+                  <span className="text-slate-700 font-medium">Free instant analysis</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500" />
-                  <span className="text-slate-600">No sign-up required</span>
+                  <span className="w-2 h-2 rounded-full bg-secondary-500" />
+                  <span className="text-slate-700 font-medium">No sign-up required</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500" />
-                  <span className="text-slate-600">Professional insights</span>
+                  <span className="w-2 h-2 rounded-full bg-secondary-500" />
+                  <span className="text-slate-700 font-medium">Professional insights</span>
                 </div>
               </div>
             </div>
@@ -195,11 +199,13 @@ function MainContent() {
                 </p>
               </div>
             }>
-              <ImageUploader 
+              <ImageUploader
                 onUpload={uploadImage}
                 isUploading={isUploading}
-                customerImage={customerImage}
+                uploadedImageUrl={customerImage}
                 sessionId={sessionId}
+                uploadError={uploadError || undefined}
+                onReset={() => setCustomerImage?.(null)}
               />
             </ErrorBoundary>
 
@@ -207,35 +213,16 @@ function MainContent() {
               <div className="space-y-6">
                 <div className="text-center">
                   <p className="text-lg text-slate-600">
-                    Your image has been uploaded successfully. Use the tool below to analyze it:
+                    Your image has been uploaded successfully. Analysis in progress...
                   </p>
                 </div>
-              <div className="mx-auto max-w-2xl">
-                <VisualSearchPanel 
-                  onClick={() => sessionId && startVisualSearch(sessionId)} 
-                  isSearching={isSearching}
-                />
-              </div>
+                <div className="flex justify-center">
+                  <div className="loading loading-spinner loading-lg text-primary"></div>
+                </div>
               </div>
             )}
             
-            {/* Test Button */}
-            <div className="flex justify-center mt-8">
-              <button
-                onClick={async () => {
-                  if (!isSearching && setSessionId) {
-                    const testId = '5beeda96-1ab6-49a5-b689-58af1bc8768d';
-                    setSessionId(testId);
-                    await testVisualSearch(testId);
-                  }
-                }}
-                className="btn-primary px-4 py-2 text-sm font-medium rounded-lg disabled:opacity-50"
-                disabled={isSearching}
-              >
-                <Search className="w-4 h-4 mr-2" />
-                Test Visual Search
-              </button>
-            </div>
+            {/* Test Button - Removed as requested */}
 
             {/* Recent Appraisals Section - Only shown when no image is uploaded */}
             {!customerImage && (
