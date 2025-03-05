@@ -53,10 +53,10 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
       
       {/* Main Analysis Panel */}
       {((results.description?.labels?.length ?? 0) > 0 || (results.webEntities?.length ?? 0) > 0) && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-300">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-gray-900" />
+            <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100">
+              <Sparkles className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Key Characteristics</h3>
@@ -64,19 +64,19 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             </div>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Web Entities */}
             {(results.webEntities?.length ?? 0) > 0 && (
               <div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(results.webEntities ?? []).map((entity, index) => (
                     <div 
                       key={index}
                       className="relative flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-all group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-gray-300 transition-colors">
-                          <span className="text-sm font-medium text-gray-900">
+                        <div className="w-9 h-9 rounded-md bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-primary-200 group-hover:text-primary-700 transition-colors">
+                          <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700">
                             {Math.round(entity.score * 100)}%
                           </span>
                         </div>
@@ -91,12 +91,15 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             {/* Derived Subjects */}
             {(results.derivedSubjects?.length ?? 0) > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4">Subject Analysis</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 inline-block"></span>
+                  Subject Analysis
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {(results.derivedSubjects ?? []).map((subject, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center rounded-full bg-gray-100/75 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200/50 hover:bg-gray-200/50 transition-colors"
+                      className="inline-flex items-center rounded-full bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200/50 hover:bg-gray-100 hover:border-gray-300 transition-all"
                     >
                       {subject}
                     </span>
@@ -108,15 +111,18 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
             {/* Image Labels */}
             {(results.description?.labels?.length ?? 0) > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4">Visual Elements</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 inline-block"></span>
+                  Visual Elements
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {(results.description?.labels ?? []).map((label, index) => (
                     <span
                       key={index}
                       className={cn(
                         "inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium",
-                        "bg-gray-100 text-gray-700 border border-gray-200/50",
-                        "hover:bg-gray-200 transition-colors"
+                        "bg-gray-50 text-gray-700 border border-gray-200/50",
+                        "hover:bg-gray-100 hover:border-gray-300 transition-all"
                       )}
                     >
                       {label}
@@ -128,10 +134,10 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
 
             {/* Similar Images */}
             {results.matches?.similar && (results.matches.similar?.length ?? 0) > 0 && (
-              <div>
+              <div className="pt-2">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Fingerprint className="w-5 h-5 text-gray-900" />
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100">
+                    <Fingerprint className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Similar Items Found</h3>
@@ -153,9 +159,9 @@ const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) =>
                           target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=500&fit=crop';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-900">
+                          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-900 shadow-sm border border-white/20">
                             {Math.round(match.score * 100)}% Match
                           </div>
                         </div>

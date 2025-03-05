@@ -23,7 +23,8 @@ const ArtScreener = ({ sessionId: initialSessionId }: ArtScreenerProps) => {
     error,
     searchResults,
     currentStep,
-    uploadError
+    uploadError,
+    setCustomerImage
   } = useImageAnalysis(initialSessionId);
 
   return (
@@ -83,12 +84,15 @@ const ArtScreener = ({ sessionId: initialSessionId }: ArtScreenerProps) => {
 
         <div className="space-y-12">
           {!initialSessionId && (
-            <ImageUploader 
+            <ImageUploader
               onUpload={uploadImage}
               isUploading={isUploading}
-              customerImage={customerImage}
+              uploadedImageUrl={customerImage}
+              uploadError={uploadError || undefined}
               sessionId={sessionId}
-              uploadError={uploadError}
+              onReset={() => {
+                setCustomerImage(null);
+              }}
             />
           )}
           

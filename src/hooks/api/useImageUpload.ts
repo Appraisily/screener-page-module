@@ -33,6 +33,7 @@ export function useImageUpload() {
     console.debug('[Debug] useImageUpload.uploadImage called', file);
 
     try {
+      // Validate file before upload
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('File size exceeds 5MB limit');
       }
@@ -41,61 +42,69 @@ export function useImageUpload() {
         throw new Error('Please upload an image file');
       }
 
+      console.debug('[Debug] File passed validation, uploading...');
+      
       // Use the API client to upload the image
       const response = await api.uploadImage(file);
-      console.debug('[Debug] Upload API response:', response);
+      console.debug('[Debug] Upload API response received:', response);
       
-      // Defensive coding to handle potential response format issues
+      // Validate the response
       if (!response) {
         console.debug('[Debug] Upload failed: Empty response');
         throw new Error('Empty response from server');
       }
       
-      let uploadResponse: UploadResponse | null = null;
-      
-      // Handle different response formats
-      if (typeof response === 'object') {
-        if (response.imageUrl && response.sessionId) {
-          uploadResponse = {
-            imageUrl: response.imageUrl,
-            sessionId: response.sessionId
-          };
-        } else {
-          console.debug('[Debug] Upload failed: Missing required fields', response);
-          console.error('[Debug] Response missing expected fields:', response);
-          throw new Error('Invalid response format from server');
-        }
-      } else {
-        console.debug('[Debug] Upload failed: Unexpected response type');
-        console.error('[Debug] Unexpected response type:', typeof response, response);
-        throw new Error('Unexpected response format from server');
+      // Check response has the required properties
+      if (typeof response !== 'object') {
+        console.debug('[Debug] Upload failed: Response is not an object', response);
+        throw new Error('Invalid response format from server');
       }
       
-      console.debug('[Debug] Processed upload response:', uploadResponse);
+      const { imageUrl, sessionId } = response;
       
-      if (!uploadResponse) {
-        console.debug('[Debug] Upload failed: Could not process response');
-        throw new Error('Failed to process upload response');
+      if (!imageUrl || !sessionId) {
+        console.debug('[Debug] Upload failed: Missing required fields', response);
+        const missingFields = [];
+        if (!imageUrl) missingFields.push('imageUrl');
+        if (!sessionId) missingFields.push('sessionId');
+        
+        throw new Error(`Missing required fields in response: ${missingFields.join(', ')}`);
       }
       
       // Update state with the response data
-      setCustomerImage(uploadResponse.imageUrl);
-      setSessionId(uploadResponse.sessionId);
+      console.debug('[Debug] Upload successful, updating state with:', { imageUrl, sessionId });
+      setCustomerImage(imageUrl);
+      setSessionId(sessionId);
 
-      return {
-        imageUrl: uploadResponse.imageUrl,
-        sessionId: uploadResponse.sessionId
-      };
+      debug('Image upload successful', { 
+        type: 'info',
+        data: { 
+          imageUrl: imageUrl,
+          sessionId: sessionId 
+        }
+      });
 
+      return { imageUrl, sessionId };
     } catch (err) {
       console.debug('[Debug] Upload failed:', err);
       console.error('[Debug] Upload error:', err);
+      
       const error = err as ApiError;
       const errorMessage = error.message || 'Failed to upload image';
+      
       setUploadError(errorMessage);
       handleError(error);
       setCustomerImage(null);
       setSessionId(null);
+      
+      debug('Image upload failed', {
+        type: 'error',
+        data: { 
+          error: errorMessage,
+          originalError: err
+        }
+      });
+      
       return null;
     } finally {
       setIsUploading(false);

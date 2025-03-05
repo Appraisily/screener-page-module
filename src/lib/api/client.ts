@@ -7,6 +7,7 @@ const apiClient = axios.create({
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -17,9 +18,19 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Handle FormData content type properly
+    if (config.data instanceof FormData) {
+      // Remove Content-Type header to let the browser set it with boundary parameter
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => {
+    console.error('[Debug] Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 interface StandardApiResponse<T = any> {
@@ -32,72 +43,98 @@ interface StandardApiResponse<T = any> {
   } | null;
 }
 
-// Response interceptor for handling the standardized format
+// Define types for error response structures
+interface ApiErrorDetails {
+  code?: string;
+  message?: string;
+  details?: Record<string, any>;
+  [key: string]: any;
+}
+
+// Adding a type guard for checking object with string properties
+function isObjectWithStringProps(obj: any): obj is Record<string, any> {
+  return obj !== null && typeof obj === 'object';
+}
+
+// Response interceptor to standardize API responses
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
-    console.debug(`[Debug] API Response (${response.config.url}):`, response.status, response.data);
+  (response) => {
+    // Check if the response is in our API format {success, data, error}
+    const responseData = response.data;
     
-    // Check if the response follows our standard format
-    const apiResponse = response.data as StandardApiResponse;
-    if (apiResponse && typeof apiResponse.success === 'boolean') {
-      if (apiResponse.success) {
-        // Return just the data for successful requests
-        return apiResponse.data;
-      } else if (apiResponse.error) {
-        // For unsuccessful responses with 2xx status, create and throw an error
-        const error = new Error(apiResponse.error.message || 'Unknown error') as ApiError;
-        error.code = apiResponse.error.code || 'UNKNOWN_ERROR';
-        error.details = apiResponse.error.details || null;
-        error.response = response;
-        return Promise.reject(error);
+    console.debug('[Debug] API Response (' + response.config.url + '):', response.status, responseData);
+    
+    // Return the original response data - we'll handle specific formatting in each method
+    return responseData;
+  },
+  (error: AxiosError) => {
+    console.error('[Debug] API request failed:', error);
+    
+    // Extract response data with proper type checking
+    const responseData = error.response?.data as any;
+    
+    // Create a standard error format
+    const fallbackError = new Error(
+      (isObjectWithStringProps(responseData) && responseData.message) || 
+      error.message || 
+      'Network Error'
+    );
+    
+    (fallbackError as any).code = error.response?.status 
+      ? `HTTP_${error.response.status}` 
+      : 'NETWORK_ERROR';
+      
+    (fallbackError as any).details = {
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      status: error.response?.status,
+      statusText: error.response?.statusText
+    };
+    
+    // Try to extract more meaningful error info from response
+    if (responseData) {
+      // Check for our API error format first
+      if (isObjectWithStringProps(responseData) && 
+          'error' in responseData && 
+          isObjectWithStringProps(responseData.error)) {
+        
+        (fallbackError as any).message = responseData.error.message || (fallbackError as any).message;
+        (fallbackError as any).code = responseData.error.code || (fallbackError as any).code;
+        
+        if (isObjectWithStringProps(responseData.error) && responseData.error.details) {
+          (fallbackError as any).details = {
+            ...(fallbackError as any).details,
+            ...(responseData.error.details as Record<string, any>)
+          };
+        }
+      }
+      // Try to find error messages in other formats
+      else if (isObjectWithStringProps(responseData)) {
+        // Look for common error message fields
+        for (const field of ['message', 'error', 'errorMessage', 'error_message', 'description']) {
+          if (field in responseData && typeof responseData[field] === 'string') {
+            (fallbackError as any).message = responseData[field];
+            break;
+          }
+        }
+      }
+      // If it's just a string error
+      else if (typeof responseData === 'string' && responseData.trim()) {
+        (fallbackError as any).message = responseData;
       }
     }
     
-    // For responses not following our format, return as is
-    return response.data;
-  },
-  (error: AxiosError) => {
-    console.debug(`[Debug] API Error:`, error.message);
-    
-    // Handle network errors
-    if (!error.response) {
-      const networkError = new Error('Unable to connect to the server. Please check your internet connection.') as ApiError;
-      networkError.code = 'NETWORK_ERROR';
-      networkError.originalError = error;
-      return Promise.reject(networkError);
-    }
-    
-    console.debug(`[Debug] API Error Response:`, error.response.status, error.response.data);
-    
-    // Handle API errors with error response format
-    const responseData = error.response.data as any;
-    if (responseData && responseData.error) {
-      const apiError = new Error(responseData.error.message || 'An error occurred') as ApiError;
-      apiError.code = responseData.error.code;
-      apiError.details = responseData.error.details;
-      apiError.status = error.response.status;
-      apiError.response = error.response;
-      return Promise.reject(apiError);
-    }
-    
-    // Handle unexpected error formats
-    const fallbackError = new Error(
-      responseData?.message || 'An unexpected error occurred'
-    ) as ApiError;
-    fallbackError.code = 'UNKNOWN_ERROR';
-    fallbackError.status = error.response.status;
-    fallbackError.response = error.response;
-    fallbackError.originalError = error;
+    (fallbackError as any).originalError = error;
     return Promise.reject(fallbackError);
   }
 );
 
 // API method wrappers
 const api = {
-  get: (url: string, config?: any) => apiClient.get(url, config),
-  post: (url: string, data?: any, config?: any) => apiClient.post(url, data, config),
-  put: (url: string, data?: any, config?: any) => apiClient.put(url, data, config),
-  delete: (url: string, config?: any) => apiClient.delete(url, config),
+  get: <T = any>(url: string, config?: any): Promise<T> => apiClient.get(url, config),
+  post: <T = any>(url: string, data?: any, config?: any): Promise<T> => apiClient.post(url, data, config),
+  put: <T = any>(url: string, data?: any, config?: any): Promise<T> => apiClient.put(url, data, config),
+  delete: <T = any>(url: string, config?: any): Promise<T> => apiClient.delete(url, config),
   
   // Custom methods for specific endpoints with proper return types
   uploadImage: async (file: File) => {
@@ -113,60 +150,161 @@ const api = {
         },
       });
       
-      console.debug('[Debug] Upload response status:', response.status);
-      console.debug('[Debug] Upload response data:', response.data);
+      console.debug('[Debug] Raw upload response:', response);
       
-      // Handle the standardized API response format
-      if (response.data && response.data.success === true && response.data.data) {
-        // The API returns { success: true, data: { imageUrl, sessionId }, error: null }
-        return response.data.data;
+      // If the response is null or undefined, throw an error
+      if (response === undefined || response === null) {
+        console.error('[Debug] Response is null or undefined');
+        throw new Error('Empty response from server');
       }
       
-      // If response doesn't have the expected structure, log and handle appropriately
-      if (!response.data || (typeof response.data === 'object' && (!response.data.imageUrl || !response.data.sessionId))) {
-        console.error('[Debug] Upload response missing expected fields:', response.data);
+      // CASE 1: Standard API response format with success/data/error
+      if (isObjectWithStringProps(response) && 'success' in response) {
+        console.debug('[Debug] Found standard API response format');
         
-        // If the response has data but not in the expected format, try to extract it
-        // This is just defensive coding to handle potential API inconsistencies
-        if (response.data && typeof response.data === 'object') {
-          // Try to find the data in different possible locations based on the response format
-          let extractedData = response.data;
+        if (response.success === true && 'data' in response && isObjectWithStringProps(response.data)) {
+          console.debug('[Debug] Success response with data:', response.data);
           
-          // If the data is nested inside a 'data' property
-          if (response.data.data && typeof response.data.data === 'object') {
-            extractedData = response.data.data;
+          const data = response.data;
+          // Check if data contains our required fields directly
+          if ('imageUrl' in data && 'sessionId' in data) {
+            console.debug('[Debug] Found imageUrl and sessionId in data');
+            return {
+              imageUrl: data.imageUrl as string,
+              sessionId: data.sessionId as string
+            };
           }
-          
-          const extracted = {
-            imageUrl: extractedData.imageUrl || extractedData.image_url || extractedData.url || '',
-            sessionId: extractedData.sessionId || extractedData.session_id || extractedData.id || ''
-          };
-          
-          if (extracted.imageUrl && extracted.sessionId) {
-            console.debug('[Debug] Extracted data from response:', extracted);
-            return extracted;
+        } else if (!response.success && 'error' in response && response.error) {
+          console.error('[Debug] API error response:', response.error);
+          throw new Error(
+            isObjectWithStringProps(response.error) && 'message' in response.error
+              ? response.error.message as string
+              : 'API Error'
+          );
+        }
+      }
+      
+      // CASE 2: Direct fields in response
+      if (isObjectWithStringProps(response) && 'imageUrl' in response && 'sessionId' in response) {
+        console.debug('[Debug] Found imageUrl and sessionId directly in response');
+        return {
+          imageUrl: response.imageUrl as string,
+          sessionId: response.sessionId as string
+        };
+      }
+      
+      // CASE 3: Flexible field search in response or nested objects
+      if (isObjectWithStringProps(response)) {
+        console.debug('[Debug] Searching for fields in response structure');
+        
+        // Extract potential data object
+        let dataObject: Record<string, any> = response as Record<string, any>;
+        
+        // If there's a data field, focus on that
+        if ('data' in response && isObjectWithStringProps(response.data)) {
+          dataObject = response.data as Record<string, any>;
+          console.debug('[Debug] Focusing on data object:', dataObject);
+        }
+        
+        // Try to find fields with various naming conventions
+        let imageUrl = '';
+        let sessionId = '';
+        
+        // Find imageUrl field
+        for (const key of ['imageUrl', 'image_url', 'url', 'image', 'path', 'file_url']) {
+          if (key in dataObject && typeof (dataObject as Record<string, any>)[key] === 'string') {
+            imageUrl = (dataObject as Record<string, any>)[key] as string;
+            console.debug(`[Debug] Found image URL in field "${key}": ${imageUrl}`);
+            break;
           }
         }
         
-        throw new Error('Invalid response format from server');
+        // Find sessionId field
+        for (const key of ['sessionId', 'session_id', 'id', 'session', 'uuid']) {
+          if (key in dataObject && typeof (dataObject as Record<string, any>)[key] === 'string') {
+            sessionId = (dataObject as Record<string, any>)[key] as string;
+            console.debug(`[Debug] Found session ID in field "${key}": ${sessionId}`);
+            break;
+          }
+        }
+        
+        // If we found both required fields
+        if (imageUrl && sessionId) {
+          console.debug('[Debug] Successfully extracted fields:', { imageUrl, sessionId });
+          return { imageUrl, sessionId };
+        }
+        
+        // Deep search in nested objects
+        const deepFind = (obj: Record<string, any>, target: string): string | null => {
+          if (!isObjectWithStringProps(obj)) return null;
+          
+          // Direct match
+          for (const key of Object.keys(obj)) {
+            if (key.toLowerCase().includes(target.toLowerCase()) && typeof obj[key] === 'string') {
+              return obj[key] as string;
+            }
+          }
+          
+          // Recursive search
+          for (const key of Object.keys(obj)) {
+            if (isObjectWithStringProps(obj[key])) {
+              const result = deepFind(obj[key], target);
+              if (result) return result;
+            }
+          }
+          
+          return null;
+        };
+        
+        // Try deep search if we couldn't find them directly
+        if (!imageUrl) {
+          const found = deepFind(response, 'image');
+          if (found) {
+            imageUrl = found;
+            console.debug(`[Debug] Deep found image URL: ${imageUrl}`);
+          }
+        }
+        
+        if (!sessionId) {
+          const found = deepFind(response, 'session');
+          if (found) {
+            sessionId = found;
+            console.debug(`[Debug] Deep found session ID: ${sessionId}`);
+          }
+        }
+        
+        // If we found both required fields via deep search
+        if (imageUrl && sessionId) {
+          console.debug('[Debug] Successfully extracted fields via deep search:', { imageUrl, sessionId });
+          return { imageUrl, sessionId };
+        }
       }
       
-      return response.data;
+      // Log the full response for debugging
+      console.error('[Debug] Could not extract required fields from response:', response);
+      throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('[Debug] Upload request failed:', error);
       throw error;
     }
   },
   
-  getSession: (sessionId: string) => apiClient.get(`/session/${sessionId}`),
+  getSession: <T = any>(sessionId: string): Promise<T> => apiClient.get(`/session/${sessionId}`),
   
-  submitEmail: (data: { email: string, sessionId: string }) => apiClient.post('/submit-email', data),
+  submitEmail: <T = any>(data: { email: string, sessionId: string, name?: string, subscribeToNewsletter?: boolean }): Promise<T> => 
+    apiClient.post('/submit-email', data),
   
-  runVisualSearch: (sessionId: string) => apiClient.post(`/visual-search/${sessionId}`),
+  runVisualSearch: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/visual-search', { sessionId }),
   
-  getOriginAnalysis: (sessionId: string) => apiClient.get(`/origin-analysis/${sessionId}`),
+  getOriginAnalysis: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/origin-analysis', { sessionId }),
 
-  analyzeWithOpenAI: (sessionId: string) => apiClient.post(`/openai-analysis/${sessionId}`),
+  analyzeWithOpenAI: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/full-analysis', { sessionId }),
+  
+  findValue: <T = any>(sessionId: string): Promise<T> => 
+    apiClient.post('/find-value', { sessionId }),
 };
 
 export default api; 

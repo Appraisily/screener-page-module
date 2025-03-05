@@ -5,6 +5,7 @@ import { useVisualSearch } from './api/useVisualSearch';
 import { useOriginAnalysis } from './api/useOriginAnalysis';
 import { useEmailSubmission } from './api/useEmailSubmission';
 import { useOpenAIAnalysis } from './api/useOpenAIAnalysis';
+import { useValueEstimation } from './api/useValueEstimation';
 import { debug } from './utils/debug';
 import { ApiError, useErrorHandler } from './useErrorHandler';
 import type { SearchResults, OriginResults } from '../types';
@@ -57,6 +58,12 @@ export function useImageAnalysis(initialSessionId?: string) {
     isAnalyzingWithOpenAI, 
     openAIResults 
   } = useOpenAIAnalysis();
+
+  const {
+    estimateValue,
+    isEstimating,
+    valueResults
+  } = useValueEstimation();
   
   console.log('API hooks initialized successfully');
 
@@ -65,6 +72,8 @@ export function useImageAnalysis(initialSessionId?: string) {
     console.log('useImageAnalysis initializing session ID effect');
     
     if (!initialSessionId) {
+      // Generate UUID only for initial setup
+      // This will be replaced by the server-provided ID after upload
       const newSessionId = uuidv4();
       console.log('Generated new session ID:', newSessionId);
       debug('Generated new session ID', { type: 'info', data: { sessionId: newSessionId } });
@@ -102,8 +111,22 @@ export function useImageAnalysis(initialSessionId?: string) {
       console.log('Calling uploadImageBase...');
       const result = await uploadImageBase(file);
       console.log('Upload result:', result ? 'Success' : 'Failed');
+      
       if (result) {
+        // Important: Update the session ID with the one returned from the server
+        console.log('Setting session ID from upload response:', result.sessionId);
+        setSessionId(result.sessionId);
         setCurrentStep(1);
+        
+        // Automatically start visual search after successful upload
+        console.log('Auto-starting visual search with session ID:', result.sessionId);
+        await searchVisually(result.sessionId);
+        console.log('Auto visual search completed');
+        setCurrentStep(2);
+        
+        // Also start OpenAI analysis
+        console.log('Auto-starting OpenAI analysis...');
+        await analyzeWithOpenAI(result.sessionId);
       }
       return result;
     } catch (err) {
@@ -113,15 +136,21 @@ export function useImageAnalysis(initialSessionId?: string) {
       handleError(apiError);
       return null;
     }
-  }, [uploadImageBase, handleError]);
+  }, [uploadImageBase, searchVisually, analyzeWithOpenAI, handleError]);
 
   // Handle visual search with proper session management
   const startVisualSearch = useCallback(async (searchSessionId: string) => {
     console.log('startVisualSearch called with session ID:', searchSessionId);
+    console.log('Current session ID in state:', sessionId);
+    
+    // Use the current sessionId from state for consistency
+    const idToUse = sessionId || searchSessionId;
+    console.log('Using session ID for visual search:', idToUse);
+    
     setError(null);
     try {
       console.log('Calling searchVisually...');
-      await searchVisually(searchSessionId);
+      await searchVisually(idToUse);
       console.log('Visual search completed');
       setCurrentStep(2);
     } catch (err) {
@@ -130,7 +159,7 @@ export function useImageAnalysis(initialSessionId?: string) {
       setError(apiError.message || 'Failed to run visual search');
       handleError(apiError);
     }
-  }, [searchVisually, handleError]);
+  }, [sessionId, searchVisually, handleError]);
 
   // Handle origin analysis
   const analyzeOrigin = useCallback(async () => {
@@ -179,16 +208,30 @@ export function useImageAnalysis(initialSessionId?: string) {
       
       // Upload the image
       console.log('Starting image upload step...');
-      await uploadImage(file);
+      const uploadResult = await uploadImage(file);
       
-      // If successful, proceed with visual search
-      if (customerImage && sessionId) {
-        console.log('Starting visual search step...');
+      // If successful, proceed with visual search using the session ID from upload
+      if (uploadResult && uploadResult.sessionId) {
+        console.log('Starting visual search step with session ID:', uploadResult.sessionId);
+        await startVisualSearch(uploadResult.sessionId);
+        
+        // Run OpenAI analysis
+        console.log('Starting OpenAI analysis step...');
+        await analyzeWithOpenAI(uploadResult.sessionId);
+        
+        // Value estimation is now automatically triggered after visual search completes
+        // so we don't need to explicitly call it here anymore
+      } else if (customerImage && sessionId) {
+        // Fallback to current state if uploadResult structure is different
+        console.log('Starting visual search step with session ID from state:', sessionId);
         await startVisualSearch(sessionId);
         
         // Run OpenAI analysis
         console.log('Starting OpenAI analysis step...');
         await analyzeWithOpenAI(sessionId);
+        
+        // Value estimation is now automatically triggered after visual search completes
+        // so we don't need to explicitly call it here anymore
       }
     } catch (err) {
       console.error('Image analysis workflow error:', err);
@@ -216,6 +259,7 @@ export function useImageAnalysis(initialSessionId?: string) {
     testVisualSearch,
     submitEmail,
     analyzeOrigin,
+    estimateValue,
     
     // Loading states
     isUploading,
@@ -223,13 +267,16 @@ export function useImageAnalysis(initialSessionId?: string) {
     isAnalyzingOrigin,
     isSubmitting,
     isAnalyzingWithOpenAI,
+    isEstimating,
     
     // Results
     customerImage,
+    setCustomerImage,
     searchResults,
     originResults,
     userEmail,
     openAIResults,
+    valueResults,
     
     // Error states
     error,
