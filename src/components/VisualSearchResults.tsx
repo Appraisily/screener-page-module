@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, Sparkles, Fingerprint, ImageIcon } from 'lucide-react';
+import { Search, Sparkles, Fingerprint, User, MapPin, Calendar } from 'lucide-react';
 import OpenAIAnalysis from './OpenAIAnalysis';
+import ServicePanels from './ServicePanels';
 import { cn } from '../lib/utils';
 
 interface WebLabel {
@@ -33,147 +34,81 @@ interface VisualSearchResults {
     similar: Array<{url: string; score: number; type: string; metadata: any}>;
   };
   pagesWithMatchingImages?: Array<any>;
-  openAIResults?: any;
+  metadata: {
+    analysisResults: {
+      openaiAnalysis: {
+        category: 'Art' | 'Antique';
+        description: string;
+      }
+    }
+  };
+  detailedAnalysis: {
+    maker_analysis: {
+      creator_name: string;
+      reasoning: string;
+    };
+    origin_analysis: {
+      likely_origin: string;
+      reasoning: string;
+    };
+    age_analysis: {
+      estimated_date_range: string;
+      reasoning: string;
+    };
+    marks_recognition: {
+      marks_identified: string;
+      interpretation: string;
+    };
+    visual_search: {
+      similar_artworks: string;
+      notes: string;
+    };
+  };
 }
 
 interface VisualSearchResultsProps {
   results: VisualSearchResults;
+  sessionId: string;
+  onEmailSubmit: (email: string) => Promise<boolean>;
+  hasEmailBeenSubmitted: boolean;
 }
 
-const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ results }) => {
-  console.log('VisualSearchResults received:', results);
+const VisualSearchResults: React.FC<VisualSearchResultsProps> = ({ 
+  results, 
+  sessionId, 
+  onEmailSubmit,
+  hasEmailBeenSubmitted
+}) => {
+
+  const { metadata, detailedAnalysis } = results;
+  const { analysisResults } = metadata;
 
   return (
     <div className="space-y-6 overflow-x-hidden">
-      {results?.openai && (
+      {analysisResults?.openaiAnalysis && (
         <OpenAIAnalysis 
-          results={results.openAIResults || {
-            concise_description: results.openai.description,
-            subject_matter: results.openai.category
-          }}
+          category={analysisResults.openaiAnalysis.category}
+          description={analysisResults.openaiAnalysis.description}
         />
       )}
       
-      {/* Main Analysis Panel */}
-      {((results.description?.labels?.length ?? 0) > 0 || (results.webEntities?.length ?? 0) > 0) && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-300">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100">
-              <Sparkles className="w-5 h-5 text-primary-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Key Characteristics</h3>
-              <p className="text-sm text-gray-500">These terms and percentages indicate how strongly our module associates each characteristic with your piece, based on visual cues such as shape, color, and texture.</p>
-            </div>
+      {/* Detailed Analysis Sections */}
+      {detailedAnalysis && (
+        <div className="space-y-8">
+          <div className="text-center opacity-60 hover:opacity-100 transition-opacity duration-200">
+            <p className="text-sm uppercase tracking-wider text-gray-500 font-medium">
+              Detailed Analysis
+            </p>
+            <div className="w-12 h-0.5 bg-gray-200 mx-auto mt-2" />
           </div>
           
-          <div className="space-y-8">
-            {/* Web Entities */}
-            {(results.webEntities?.length ?? 0) > 0 && (
-              <div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {(results.webEntities ?? []).map((entity, index) => (
-                    <div 
-                      key={index}
-                      className="relative flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-md bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-primary-200 group-hover:text-primary-700 transition-colors">
-                          <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700">
-                            {Math.round(entity.score * 100)}%
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">{entity.description}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Derived Subjects */}
-            {(results.derivedSubjects?.length ?? 0) > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 inline-block"></span>
-                  Subject Analysis
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {(results.derivedSubjects ?? []).map((subject, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center rounded-full bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200/50 hover:bg-gray-100 hover:border-gray-300 transition-all"
-                    >
-                      {subject}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Image Labels */}
-            {(results.description?.labels?.length ?? 0) > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 inline-block"></span>
-                  Visual Elements
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {(results.description?.labels ?? []).map((label, index) => (
-                    <span
-                      key={index}
-                      className={cn(
-                        "inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium",
-                        "bg-gray-50 text-gray-700 border border-gray-200/50",
-                        "hover:bg-gray-100 hover:border-gray-300 transition-all"
-                      )}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Similar Images */}
-            {results.matches?.similar && (results.matches.similar?.length ?? 0) > 0 && (
-              <div className="pt-2">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shadow-sm border border-gray-100">
-                    <Fingerprint className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Similar Items Found</h3>
-                    <p className="text-sm text-gray-500">Discover pieces that share visual characteristics with your item. These comparisons can provide insights into style, period, and market value.</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(results.matches?.similar ?? []).map((match, index) => (
-                    <div 
-                      key={index}
-                      className="relative rounded-xl overflow-hidden aspect-square group hover:shadow-lg transition-all border border-gray-100 hover:border-gray-300"
-                    >
-                      <img
-                        src={match.url}
-                        alt={`Similar image ${index + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=500&fit=crop';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-gray-900 shadow-sm border border-white/20">
-                            {Math.round(match.score * 100)}% Match
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div>
+            <ServicePanels 
+              analysis={detailedAnalysis} 
+              sessionId={sessionId}
+              onEmailSubmit={onEmailSubmit}
+              hasEmailBeenSubmitted={hasEmailBeenSubmitted}
+            />
           </div>
         </div>
       )}

@@ -1,165 +1,142 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Upload, Image as ImageIcon, X, AlertCircle } from 'lucide-react';
-import classNames from 'classnames';
+import React, { useCallback } from 'react';
+import { Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 
-export interface ImageUploaderProps {
-  onUpload: (file: File) => Promise<any>;
-  uploadedImageUrl?: string | null;
-  uploadError?: string;
-  isUploading?: boolean;
-  uploadProgress?: number;
-  sessionId?: string;
-  onReset?: () => void;
+interface ImageUploaderProps {
+  onUpload: (file: File) => void;
+  onReset: () => void;
+  isUploading: boolean;
+  customerImage: string | null;
+  sessionId?: string | null;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({
-  onUpload,
-  uploadedImageUrl,
-  uploadError,
-  isUploading = false,
-  uploadProgress = 0,
-  sessionId,
-  onReset,
-}) => {
-  const [dragActive, setDragActive] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      if (acceptedFiles?.length > 0) {
-        await onUpload(acceptedFiles[0]);
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, onReset, isUploading, customerImage, sessionId }) => {
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        console.log('Dropped file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        onUpload(file);
+      } else {
+        console.warn('Invalid file type:', file?.type);
       }
     },
     [onUpload]
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        console.log('Selected file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        onUpload(file);
+      }
     },
-    maxSize: 10485760, // 10MB
-    multiple: false
-  });
+    [onUpload]
+  );
 
-  // Update drag state based on dropzone status
-  useEffect(() => {
-    setDragActive(isDragActive);
-  }, [isDragActive]);
+  const handleUploadAnother = () => {
+    onReset();
+  };
 
-  const handleButtonClick = () => {
-    if (uploadedImageUrl && onReset) {
-      onReset();
-    } else if (inputRef.current) {
-      inputRef.current.click();
+  const handleClick = () => {
+    if (!isUploading) {
+      console.log('Upload button clicked, opening file selector');
     }
   };
 
   return (
-    <div className="w-full">
+    <div className="mx-auto max-w-2xl">
       <div
-        {...getRootProps()}
-        className={classNames(
-          "relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 flex flex-col items-center justify-center",
-          "min-h-[300px] sm:min-h-[400px] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-          {
-            "border-primary-400 bg-primary-50": dragActive,
-            "border-gray-300 hover:border-primary-300 bg-gray-50 hover:bg-gray-100": !dragActive && !uploadedImageUrl && !isUploading,
-            "border-red-300 bg-red-50": uploadError,
-            "border-gray-200": isUploading || uploadedImageUrl,
-          }
-        )}
+        className={`relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg 
+                   transition-all duration-300 ${
+          isUploading
+            ? 'ring-2 ring-[#007bff]'
+            : 'ring-1 ring-gray-200 hover:ring-2 hover:ring-[#007bff]'
+        }`}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
       >
-        <input {...getInputProps()} ref={inputRef} />
-        
-        {/* Progress overlay when uploading */}
-        {isUploading && (
-          <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10">
-            <div className="w-16 h-16 rounded-full border-4 border-primary-200 border-t-primary-600 animate-spin mb-4"></div>
-            <div className="w-3/4 max-w-xs bg-gray-200 rounded-full h-2 mb-2">
-              <div 
-                className="bg-primary-600 h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${uploadProgress > 0 ? uploadProgress : 5}%` }}
-              ></div>
+        <div className="flex flex-col items-center justify-center space-y-4">
+          {customerImage ? (
+            <div className="relative w-full">
+              <img
+                src={customerImage}
+                alt="Uploaded item"
+                className="w-full h-auto max-h-[400px] object-contain rounded-xl shadow-lg border border-gray-200
+                         transition-all duration-300 hover:border-[#007bff]"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=500&fit=crop';
+                }}
+              />
+              {sessionId && (
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-600">Session ID:</span>
+                    <code className="px-3 py-1.5 bg-white rounded-md text-sm font-mono text-[#007bff] shadow-sm border border-gray-200">
+                      {sessionId}
+                    </code>
+                  </div>
+                </div>
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/95 backdrop-blur-md rounded-xl">
+                  <div className="text-center space-y-3">
+                    <Loader2 className="w-10 h-10 text-[#007bff] animate-spin mx-auto" />
+                    <div className="bg-white px-6 py-3 rounded-xl shadow-sm">
+                      <p className="text-sm font-medium text-gray-900">Processing image...</p>
+                      <p className="text-xs text-gray-600">Getting AI analysis results</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-gray-600">
-              {uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : 'Uploading...'}
-            </p>
-          </div>
-        )}
-        
-        {/* Error message display */}
-        {uploadError && (
-          <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10 p-6">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-            </div>
-            <h3 className="text-red-600 font-medium text-lg mb-2">Upload Failed</h3>
-            <p className="text-gray-600 text-center mb-4">{uploadError}</p>
-            <button 
-              className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-md transition-colors" 
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onReset) onReset();
-              }}
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-        
-        {/* Display uploaded image */}
-        {uploadedImageUrl ? (
-          <div className="relative w-full h-full min-h-[250px] flex flex-col items-center justify-center">
-            {sessionId && (
-              <div className="mb-3 px-3 py-1.5 bg-primary-100 text-primary-800 rounded-md flex items-center">
-                <span className="font-medium text-sm">Session ID:</span>
-                <code className="ml-2 px-2 py-0.5 bg-white rounded font-mono text-xs">{sessionId}</code>
+          ) : (
+            <>
+              <div className="text-center">
+                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r 
+                             from-gray-900 to-gray-600 mb-4">
+                  {isUploading ? 'Uploading item...' : 'Upload Your Art or Antique'}
+                </h3>
+                <p className="text-xl text-gray-600 mb-6 max-w-lg mx-auto">
+                  {isUploading ? 'Please wait while we process your image' : 'Drop your file here or click to browse'}
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
+                  <span className="w-2 h-2 rounded-full bg-[#007bff] animate-pulse" />
+                  <p className="text-sm text-gray-600">
+                  Supported formats: JPEG, PNG, WebP (max 5MB)
+                  </p>
+                </div>
               </div>
-            )}
-            <img
-              src={uploadedImageUrl}
-              alt="Uploaded artwork"
-              className="max-h-full max-w-full object-contain rounded-md"
-              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://placehold.co/600x400?text=Image+Failed+to+Load';
-              }}
-            />
-            <button 
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onReset) onReset();
-              }}
-            >
-              <Upload className="w-4 h-4 text-gray-700" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center text-center">
-            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 shadow-sm">
-              <ImageIcon className="h-8 w-8 text-gray-500" />
-            </div>
-            <h3 className="text-xl font-medium text-gray-800 mb-2">Upload Artwork</h3>
-            <p className="text-gray-500 mb-6 max-w-sm">
-              Drag and drop your image here, or click to browse your files
-            </p>
-            <p className="text-xs text-gray-400 mb-4">
-              Supported formats: JPEG, PNG, WebP (max 10MB)
-            </p>
-            <button 
-              className="bg-primary-100 hover:bg-primary-200 text-primary-800 font-medium px-5 py-2.5 rounded-lg transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (inputRef.current) inputRef.current.click();
-              }}
-            >
-              Choose File
-            </button>
-          </div>
-        )}
+            </>
+          )}
+          
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileInput}
+            className="hidden"
+            id="file-upload"
+            disabled={isUploading}
+          />
+          <label
+            htmlFor="file-upload"
+            className={`rounded-xl px-8 py-4 text-lg font-semibold shadow-xl 
+                     transition-all duration-300 cursor-pointer flex items-center gap-3 
+                     hover:shadow-2xl hover:scale-[1.02] active:scale-100
+                     ${isUploading
+                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                       : 'bg-black text-white hover:bg-gray-900'}`}
+            onClick={customerImage ? handleUploadAnother : handleClick}
+          >
+            <ImageIcon className="w-5 h-5" />
+            {customerImage ? 'Upload Another Item' : 'Select Item'}
+          </label>
+        </div>
+        
+        {/* Grid pattern moved to bottom layer */}
+        <div className="absolute inset-0 bg-grid opacity-[0.1] pointer-events-none" />
       </div>
     </div>
   );

@@ -92,7 +92,7 @@ const Services = ({ itemType, currentStep = 1 }: ServicesProps) => {
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <div className="mb-6">
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900">
+            <span className="inline-flex items-center rounded-full bg-[#007bff]/10 px-4 py-2 text-sm font-medium text-[#007bff]">
               Step {currentStep} of 4
             </span>
           </div>
@@ -117,7 +117,7 @@ const Services = ({ itemType, currentStep = 1 }: ServicesProps) => {
               <div 
                 key={step}
                 className={`text-xs text-center ${
-                  step <= currentStep ? 'text-gray-900' : 'text-gray-400'
+                  step <= currentStep ? 'text-[#007bff]' : 'text-gray-400'
                 }`}
               >
                 Step {step}

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Art Analysis Report from Appraisily</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f3f4f6;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 32px; text-align: center;">
+              <img src="https://ik.imagekit.io/appraisily/WebPage/logo_new.png" alt="Appraisily Logo" width="80" style="margin-bottom: 24px;">
+              <h1 style="margin: 0; color: #111827; font-size: 24px; font-weight: bold;">Your Art Analysis Report</h1>
+              <p style="margin: 8px 0 0; color: #007bff; font-size: 16px;">by Appraisily</p>
+            </td>
+          </tr>
+
+          <!-- Customer Image -->
+          <tr>
+            <td style="padding: 0;">
+              <div style="position: relative; border-bottom: 1px solid #e5e7eb;">
+                <img src="{{USER_IMAGE_URL}}" alt="Analyzed Artwork" width="600" style="display: block; width: 100%; max-width: 600px; height: auto; object-fit: contain;">
+                <div style="position: absolute; top: 16px; left: 16px; background-color: #2563eb; color: #ffffff; padding: 6px 12px; border-radius: 9999px; font-size: 14px; font-weight: 500;">
+                  User Input
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Basic Info -->
+          <tr>
+            <td style="padding: 24px; background: linear-gradient(to right, #f8fafc, #ffffff); border-bottom: 1px solid #e5e7eb;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <h2 style="margin: 0 0 8px; color: #111827; font-size: 24px; font-weight: 700;">{{TITLE}}</h2>
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 14px;">
+                      <div>
+                        <span style="color: #374151; font-weight: 500;">Session ID:</span>
+                        <code style="font-family: monospace; background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; color: #2563eb;">{{SESSION_ID}}</code>
+                      </div>
+                      <div>
+                        <span style="color: #374151; font-weight: 500;">Category:</span>
+                        <span style="color: #2563eb;">{{CATEGORY}}</span>
+                      </div>
+                      <div>
+                        <span style="color: #374151; font-weight: 500;">Description:</span>
+                        <span style="color: #6b7280;">{{DESCRIPTION}}</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Value Estimation -->
+          <tr>
+            <td style="padding: 24px; background-color: rgba(59, 130, 246, 0.05);">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Value Estimation</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="50%">
+                    <p style="margin: 0; color: #6b7280;">Range:</p>
+                    <p style="margin: 4px 0 0; color: #2563eb; font-size: 20px; font-weight: bold;">{{VALUE_RANGE}}</p>
+                  </td>
+                  <td width="50%">
+                    <p style="margin: 0; color: #6b7280;">Most Likely:</p>
+                    <p style="margin: 4px 0 0; color: #2563eb; font-size: 20px; font-weight: bold;">{{MOST_LIKELY_VALUE}}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Visual Analysis -->
+          <tr>
+            <td style="padding: 32px;">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Visual Analysis</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Web Entities</h3>
+                      <div style="margin: 0; color: #6b7280;">{{WEB_ENTITIES}}</div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Similar Images -->
+          <tr>
+            <td style="padding: 0 32px 32px;">
+              <h3 style="margin: 0 0 16px; color: #111827; font-size: 18px;">Similar Artworks Found</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-size: 0;">
+                    {{SIMILAR_IMAGES}}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Origin Analysis -->
+          <tr>
+            <td style="padding: 32px; background-color: #f8fafc;">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Origin Analysis</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <div style="background-color: #ffffff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Originality Assessment</h3>
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                        <span style="color: #6b7280;">Confidence: {{CONFIDENCE}}%</span>
+                        <div style="flex-grow: 1; height: 8px; background-color: #e5e7eb; border-radius: 9999px; overflow: hidden;">
+                          <div style="width: {{CONFIDENCE}}%; height: 100%; background-color: #2563eb; border-radius: 9999px;"></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style="background-color: #ffffff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Style Analysis</h3>
+                      <p style="margin: 0; color: #6b7280;">{{STYLE_ANALYSIS}}</p>
+                    </div>
+                    
+                    <div style="background-color: #ffffff; padding: 16px; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Unique Characteristics</h3>
+                      <ul style="margin: 0; padding-left: 20px; color: #6b7280;">
+                        {{UNIQUE_CHARACTERISTICS}}
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Full Analysis -->
+          <tr>
+            <td style="padding: 32px;">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Full Analysis Findings</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Maker Analysis</h3>
+                      <p style="margin: 0; color: #6b7280;">{{MAKER_ANALYSIS}}</p>
+                    </div>
+                    
+                    <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px;">
+                      <h3 style="margin: 0 0 8px; color: #4b5563; font-size: 16px;">Age Analysis</h3>
+                      <p style="margin: 0; color: #6b7280;">{{AGE_ANALYSIS}}</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Recent Auction Results -->
+          <tr>
+            <td style="padding: 32px; background-color: #f8fafc;">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Recent Auction Results</h2>
+              {{AUCTION_RESULTS}}
+            </td>
+          </tr>
+
+          <!-- Value Analysis -->
+          <tr>
+            <td style="padding: 32px;">
+              <h2 style="margin: 0 0 16px; color: #111827; font-size: 20px;">Value Analysis</h2>
+              <div style="background-color: rgba(59, 130, 246, 0.05); padding: 16px; border-radius: 8px;">
+                <p style="margin: 0; color: #6b7280;">{{VALUE_ANALYSIS}}</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding: 32px; text-align: center; background-color: #f8fafc; border-radius: 0 0 8px 8px;">
+              <a href="https://appraisily.com/professional-appraisal" style="display: inline-block; padding: 16px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; font-weight: bold; border-radius: 8px;">
+                Get Professional Appraisal
+              </a>
+              <p style="margin: 16px 0 0; color: #6b7280; font-size: 14px;">
+                For a detailed professional appraisal and authentication of your artwork
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table width="600" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding: 32px; text-align: center;">
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                © 2024 Appraisily. All rights reserved.
+              </p>
+              <p style="margin: 8px 0 0; color: #6b7280; font-size: 14px;">
+                <a href="https://appraisily.com/privacy" style="color: #2563eb; text-decoration: none;">Privacy Policy</a>
+                &nbsp;·&nbsp;
+                <a href="https://appraisily.com/terms" style="color: #2563eb; text-decoration: none;">Terms of Service</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

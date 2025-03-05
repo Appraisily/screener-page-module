@@ -12,11 +12,16 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
     Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Ensure all routes are handled by the SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
 
 [site]
   id = "8d35f28f-dbd5-4126-b8e4-c2513f7812d4"

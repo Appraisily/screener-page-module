@@ -1,41 +1,23 @@
-import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AnalyzePage from './pages/AnalyzePage';
 
 function App() {
-  useEffect(() => {
-    console.log('App component mounted');
-    return () => console.log('App component unmounted');
-  }, []);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const sessionId = queryParams.get('sessionId');
 
-  // Adding a logging wrapper for each component
-  const LoggedHomePage = () => {
-    useEffect(() => {
-      console.log('HomePage component mounted');
-      return () => console.log('HomePage component unmounted');
-    }, []);
-    return <HomePage />;
-  };
-
-  const LoggedAnalyzePage = (props: any) => {
-    useEffect(() => {
-      console.log('AnalyzePage component mounted with params:', props);
-      return () => console.log('AnalyzePage component unmounted');
-    }, [props]);
-    return <AnalyzePage {...props} />;
-  };
-
-  // Log the current URL path
-  useEffect(() => {
-    console.log('Current URL path:', window.location.pathname);
-    console.log('Current URL search:', window.location.search);
-  }, []);
+  // If we have a sessionId in query params, redirect to the analyze page
+  if (sessionId && location.pathname === '/') {
+    return <Navigate to={`/analyze/${sessionId}`} replace />;
+  }
 
   return (
     <Routes>
-      <Route path="/" element={<LoggedHomePage />} />
-      <Route path="/analyze/:sessionId" element={<LoggedAnalyzePage />} />
+      <Route index element={<HomePage />} />
+      <Route path="/analyze/:sessionId" element={<AnalyzePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
