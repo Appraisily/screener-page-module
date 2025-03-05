@@ -52,7 +52,9 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/aspect-ratio'),
+  ],
   safelist: [
     // Add commonly used classes that might not be directly in the HTML
     // This ensures they're included in the final CSS
@@ -66,6 +68,8 @@ export default {
     'text-error',
     'text-success',
     'alert-error',
-    'alert-success'
+    'alert-success',
+    'aspect-w-1',
+    'aspect-h-1'
   ]
 }

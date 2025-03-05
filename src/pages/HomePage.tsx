@@ -126,6 +126,16 @@ function MainContent() {
     });
   }, [sessionId, searchResults, customerImage]);
   
+  // Sample appraisal data
+  const recentAppraisals = [
+    { id: 1, title: 'Example appraisal 1', image: 'https://ik.imagekit.io/appraisily/WebPage/example1.jpg' },
+    { id: 2, title: 'Example appraisal 2', image: 'https://ik.imagekit.io/appraisily/WebPage/example2.jpg' },
+    { id: 3, title: 'Example appraisal 3', image: 'https://ik.imagekit.io/appraisily/WebPage/example3.jpg' },
+    { id: 4, title: 'Example appraisal 4', image: 'https://ik.imagekit.io/appraisily/WebPage/example4.jpg' },
+    { id: 5, title: 'Example appraisal 5', image: 'https://ik.imagekit.io/appraisily/WebPage/example5.jpg' },
+    { id: 6, title: 'Example appraisal 6', image: 'https://ik.imagekit.io/appraisily/WebPage/example6.jpg' }
+  ];
+  
   return (
     <>
       <Navbar />
@@ -175,7 +185,7 @@ function MainContent() {
             </div>
           )}
 
-          <div className="space-y-12">
+          <div className="space-y-16">
             <ErrorBoundary fallback={
               <div className="text-center py-8">
                 <div className="text-error mb-4">
@@ -195,12 +205,12 @@ function MainContent() {
                 </p>
               </div>
             }>
-              <ImageUploader 
-                onUpload={uploadImage}
-                isUploading={isUploading}
-                customerImage={customerImage}
-                sessionId={sessionId}
-              />
+            <ImageUploader 
+              onUpload={uploadImage}
+              isUploading={isUploading}
+              customerImage={customerImage}
+              sessionId={sessionId}
+            />
             </ErrorBoundary>
 
             {customerImage && sessionId && !searchResults && !isSearching && (
@@ -253,17 +263,226 @@ function MainContent() {
                   <p className="text-error">There was an error displaying results</p>
                 </div>
               }>
-                <ResultsDisplay
+              <ResultsDisplay
                   searchResults={searchResults}
                   sessionId={sessionId}
                   submitEmail={handleEmailSubmit}
-                  onAnalyzeOrigin={analyzeOrigin}
-                  isAnalyzingOrigin={isAnalyzingOrigin}
-                  originResults={originResults}
-                  isAnalyzing={false}
+                onAnalyzeOrigin={analyzeOrigin}
+                isAnalyzingOrigin={isAnalyzingOrigin}
+                originResults={originResults}
+                isAnalyzing={false}
                 />
               </ErrorBoundary>
             )}
+            
+            {/* Recent Appraisals Section */}
+            <section className="mt-24">
+              <div className="mx-auto max-w-4xl">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-primary-900 mb-4">Recent Appraisals</h2>
+                  <p className="text-lg text-slate-600">Examples of items we've analyzed</p>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  {recentAppraisals.map(item => (
+                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-slate-100">
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            // Fallback for images that fail to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = `https://placehold.co/300x300/f8fafc/64748b?text=Example+${item.id}`;
+                          }}
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium text-primary-900">{item.title}</h3>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+            
+            {/* Report Example Section */}
+            <section className="mt-24 bg-white py-16 rounded-2xl shadow-xl">
+              <div className="mx-auto max-w-5xl px-6">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-primary-900 mb-4">How Your Report Will Look</h2>
+                  <p className="text-lg text-slate-600">After uploading your artwork, you'll receive a detailed report like this</p>
+                </div>
+                
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg">
+                  {/* Report Header */}
+                  <div className="bg-primary-900 text-white p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold">Art Analysis Report</h3>
+                        <p className="text-primary-200">by Appraisily</p>
+                      </div>
+                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" className="w-8 h-8 text-primary-900" fill="none" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Report Content */}
+                  <div className="p-6">
+                    <div className="flex flex-col md:flex-row gap-8">
+                      {/* Left Column - Image */}
+                      <div className="md:w-1/3">
+                        <div className="rounded-lg overflow-hidden border border-slate-200">
+                          <img 
+                            src="https://ik.imagekit.io/appraisily/WebPage/example_report.jpg" 
+                            alt="Example artwork" 
+                            className="w-full h-auto"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "https://placehold.co/400x500/f8fafc/64748b?text=Example+Artwork";
+                            }}
+                          />
+                        </div>
+                        <div className="mt-4 text-center">
+                          <h4 className="font-semibold text-primary-900">Early English Baroque Oil Portrait</h4>
+                        </div>
+                      </div>
+                      
+                      {/* Right Column - Details */}
+                      <div className="md:w-2/3">
+                        <div className="space-y-6">
+                          {/* Session Info */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-slate-500">Session ID:</p>
+                              <p className="font-mono text-xs text-slate-700">dfcea0c9-f596-41f2-9bcb-06947d9ac2a4</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-500">Category:</p>
+                              <p className="text-slate-700">Art</p>
+                            </div>
+                          </div>
+                          
+                          {/* Value Estimation */}
+                          <div className="bg-slate-50 p-4 rounded-lg">
+                            <h4 className="font-semibold text-primary-900 mb-2">Value Estimation</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-sm text-slate-500">Range:</p>
+                                <p className="text-primary-900 font-semibold">$375 - $530,000</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-slate-500">Most Likely:</p>
+                                <p className="text-secondary-600 font-bold text-lg">$7,000</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Visual Analysis */}
+                          <div>
+                            <h4 className="font-semibold text-primary-900 mb-2">Visual Analysis</h4>
+                            <div className="mb-3">
+                              <p className="text-sm text-slate-500">Web Entities</p>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                <span className="px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-700">Art</span>
+                                <span className="px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-700">Painting</span>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-slate-500 mb-2">Similar Images Found</p>
+                              <div className="grid grid-cols-5 gap-2">
+                                {[1, 2, 3, 4, 5].map(num => (
+                                  <div key={num} className="aspect-w-1 aspect-h-1 overflow-hidden rounded bg-slate-100">
+                                    <img 
+                                      src={`https://ik.imagekit.io/appraisily/WebPage/similar${num}.jpg`}
+                                      alt={`Similar artwork ${num}`}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = `https://placehold.co/100x100/f8fafc/64748b?text=Similar+${num}`;
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Origin Analysis */}
+                          <div>
+                            <h4 className="font-semibold text-primary-900 mb-2">Origin Analysis</h4>
+                            
+                            <div className="mb-4">
+                              <p className="text-sm text-slate-500 mb-1">Style Analysis</p>
+                              <p className="text-sm text-slate-700">
+                                The painting appears in the style of a 17th-century Baroque portrait, with subdued lighting, 
+                                a dark background, and the sitter's face emerging from shadow in the traditional 'old master' manner.
+                              </p>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-slate-500 mb-1">Unique Characteristics</p>
+                              <ul className="text-sm text-slate-700 list-disc pl-5 space-y-1">
+                                <li>Long, curled hair typical of mid to late 17th-century portraiture</li>
+                                <li>Warm, earthy tonality and chiaroscuro-like contrast</li>
+                                <li>Soft, blended brushwork around the face and hair</li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          {/* Market Activity */}
+                          <div>
+                            <h4 className="font-semibold text-primary-900 mb-2">Recent Market Activity</h4>
+                            <div className="space-y-3">
+                              <div className="p-3 border border-slate-200 rounded">
+                                <p className="font-medium text-primary-900">ANTIQUE 17 CENTURY ENGLISH OIL PORTRAIT PAINTING</p>
+                                <p className="text-sm text-slate-500">Antique Arena Inc, 2022</p>
+                                <p className="text-secondary-600 font-semibold mt-1">$375</p>
+                              </div>
+                              
+                              <div className="p-3 border border-slate-200 rounded">
+                                <p className="font-medium text-primary-900">Portrait of Lady Anne O'Brien</p>
+                                <p className="text-sm text-slate-500">Setdart Auction House, 2022</p>
+                                <p className="text-secondary-600 font-semibold mt-1">€7,000</p>
+                              </div>
+                              
+                              <div className="p-3 border border-slate-200 rounded">
+                                <p className="font-medium text-primary-900">Attributed to Sir Peter Lely, Late 17th Century</p>
+                                <p className="text-sm text-slate-500">Hindman, 2021</p>
+                                <p className="text-secondary-600 font-semibold mt-1">$10,625</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Value Analysis */}
+                          <div>
+                            <h4 className="font-semibold text-primary-900 mb-2">Value Analysis</h4>
+                            <p className="text-sm text-slate-700">
+                              Comparable early English Baroque portraits show huge variation. Unattributed or modest works 
+                              typically realize prices in the low thousands, while strong attributions or exceptional quality 
+                              can drive values higher.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Report Footer */}
+                  <div className="bg-slate-50 p-6 border-t border-slate-200">
+                    <p className="text-sm text-slate-600 italic">
+                      This is an example report. Your analysis will be customized based on your specific item, 
+                      including detailed visual analysis, market comparables, and expert insights.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </div>
