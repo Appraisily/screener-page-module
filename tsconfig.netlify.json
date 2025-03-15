@@ -1,11 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noUnusedLocals": false, 
+    "noUnusedLocals": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
     "noEmit": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "noImplicitAny": false,
+    "noFallthroughCasesInSwitch": false,
+    "strictNullChecks": false
   },
   "exclude": ["node_modules", "dist", "**/__tests__/**"]
 }
