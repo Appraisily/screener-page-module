@@ -7,15 +7,6 @@ declare global {
   }
 }
 
-/**
- * A hook to integrate Tawk.to live chat widget.
- * This was ported from the alternative implementation for future use if needed.
- * 
- * To use this hook:
- * 1. Import it in your App or layout component
- * 2. Call it once: `useTawkTo();`
- * 3. The chat widget will automatically be loaded with a 3 second delay
- */
 export const useTawkTo = () => {
   useEffect(() => {
     const loadTawkTo = () => {
@@ -47,4 +38,4 @@ export const useTawkTo = () => {
       clearTimeout(timer);
     };
   }, []);
-}; 
+};

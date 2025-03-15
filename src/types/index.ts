@@ -1,6 +1,33 @@
 // Common types used across components
 export type ItemType = 'Art' | 'Antique';
 
+export interface DetailedAnalysis {
+  maker_analysis: {
+    creator_name: string;
+    reasoning: string;
+  };
+  signature_check: {
+    signature_text: string;
+    interpretation: string;
+  };
+  origin_analysis: {
+    likely_origin: string;
+    reasoning: string;
+  };
+  marks_recognition: {
+    marks_identified: string;
+    interpretation: string;
+  };
+  age_analysis: {
+    estimated_date_range: string;
+    reasoning: string;
+  };
+  visual_search: {
+    similar_artworks: string;
+    notes: string;
+  };
+}
+
 export interface AnalysisStep {
   id: string;
   title: string;
@@ -9,34 +36,37 @@ export interface AnalysisStep {
 }
 
 export interface SearchResults {
-  openai: {
-    category: ItemType;
-    description: string;
+  metadata: {
+    originalName: string;
+    timestamp: number;
+    analyzed: boolean;
+    mimeType: string;
+    size: number;
+    fileName: string;
+    imageUrl: string;
+    analysisTimestamp: number;
+    analysisResults: {
+      labels: string[];
+      webEntities: number;
+      matchCounts: {
+        exact: number;
+        partial: number;
+        similar: number;
+      };
+      pagesWithMatches: number;
+      webLabels: number;
+      openaiAnalysis: {
+        category: ItemType;
+        description: string;
+      };
+    };
+    originAnalyzed: boolean;
+    originAnalysisTimestamp: number;
   };
-  description: {
-    labels: string[];
-    confidence: number;
-  };
-  webEntities: Array<{
-    entityId: string;
-    score: number;
-    description: string;
-  }>;
-  webLabels: Array<{
-    label: string;
-    score: number;
-    languages: string[];
-  }>;
-  derivedSubjects: string[];
-  matches?: {
-    exact: Array<{url: string; score: number; type: string; metadata: any}>;
-    partial: Array<{url: string; score: number; type: string; metadata: any}>;
-    similar: Array<{url: string; score: number; type: string; metadata: any}>;
-  };
-  pagesWithMatchingImages?: any; // Add this field to match the structure used in useVisualSearch
+  detailedAnalysis: DetailedAnalysis;
 }
 
-export interface OriginAnalysisResult {
+export interface OriginResults {
   originality: string;
   confidence: number;
   style_analysis: string;
@@ -45,38 +75,9 @@ export interface OriginAnalysisResult {
   recommendation: string;
 }
 
-export interface OriginResults {
-  timestamp: number;
-  matches: {
-    exact: Array<{url: string; score: number; type: string; metadata: any}>;
-    partial: Array<{url: string; score: number; type: string; metadata: any}>;
-    similar: Array<{url: string; score: number; type: string; metadata: any}>;
-  };
-  originAnalysis: OriginAnalysisResult;
-  webEntities: Array<{
-    entityId: string;
-    score: number;
-    description: string;
-  }>;
-  visionLabels: {
-    labels: string[];
-    confidence: number;
-  };
-  openaiAnalysis: {
-    category: string;
-    description: string;
-  };
-}
-
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
   error?: string;
   data?: T;
-}
-
-export interface OpenAIAnalysisResults {
-  description?: string;
-  analysis?: string;
-  confidence?: number;
 }

@@ -1,40 +1,42 @@
 import { useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import AnalysisProgress from '../components/AnalysisProgress';
+import EmailCollectionCard from '../components/EmailCollectionCard';
 import ResultsDisplay from '../components/ResultsDisplay';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 
 function AnalyzePage() {
-  const { sessionId: urlSessionId } = useParams<{ sessionId: string }>();
+  const { sessionId } = useParams<{ sessionId: string }>();
 
   const {
     isInitializing,
     customerImage,
+    gcsImageUrl,
     error,
     currentStep,
     searchResults,
     submitEmail,
+    hasEmailBeenSubmitted,
+    analysisSteps,
     analyzeOrigin,
     isAnalyzingOrigin,
     originResults
-  } = useImageAnalysis(urlSessionId);
+  } = useImageAnalysis(undefined, sessionId);
 
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
-    if (urlSessionId) {
+    if (sessionId) {
       return await submitEmail(email);
     }
     return false;
-  }, [urlSessionId, submitEmail]);
+  }, [sessionId, submitEmail]);
 
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-[#007bff] border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading analysis...</p>
-        </div>
+        <AnalysisProgress steps={analysisSteps} />
       </div>
     );
   }
@@ -56,11 +58,38 @@ function AnalyzePage() {
               <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
                 Analyzing Your Artwork
               </h1>
-              <p className="text-2xl font-semibold mt-2 text-gray-900">
+              <p className="text-2xl font-semibold mt-2 text-[rgb(0,123,255)]">
                 AI-Powered Analysis in Progress
               </p>
             </div>
           </header>
+
+          {/* Customer Image Display */}
+          {(customerImage || gcsImageUrl) && (
+            <div className="mx-auto max-w-2xl mb-16">
+              <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 space-y-4">
+                <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                  <img
+                    src={customerImage || gcsImageUrl}
+                    alt="Uploaded artwork"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500&h=500&fit=crop';
+                    }}
+                  />
+                </div>
+                {sessionId && (
+                  <div className="flex items-center justify-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-600">Analysis ID:</span>
+                    <code className="px-3 py-1 bg-white rounded text-sm font-mono text-blue-600 border border-blue-200">
+                      {sessionId}
+                    </code>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mx-auto max-w-2xl mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
@@ -69,19 +98,25 @@ function AnalyzePage() {
             </div>
           )}
 
+          {searchResults && !hasEmailBeenSubmitted && (
+            <EmailCollectionCard onSubmit={handleEmailSubmit} />
+          )}
+
           <div className="space-y-16">
             <Services 
               itemType={searchResults?.openai?.category || null}
+              submitEmail={handleEmailSubmit}
             />
             {customerImage && (
               <ResultsDisplay 
                 searchResults={searchResults}
-                sessionId={urlSessionId}
+                sessionId={sessionId}
                 submitEmail={submitEmail}
                 onAnalyzeOrigin={analyzeOrigin}
                 isAnalyzingOrigin={isAnalyzingOrigin}
                 originResults={originResults}
                 isAnalyzing={false}
+                hasEmailBeenSubmitted={hasEmailBeenSubmitted}
               />
             )}
           </div>

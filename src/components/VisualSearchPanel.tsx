@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 const IMAGEKIT_URL = 'https://ik.imagekit.io/appraisily/WebPage';
 
 interface VisualSearchPanelProps {
-  onClick: (sessionId?: string) => void;
+  onClick: () => void;
   isSearching?: boolean;
 }
 
@@ -19,13 +19,13 @@ const VisualSearchPanel: React.FC<VisualSearchPanelProps> = ({ onClick, isSearch
   return (
     <div 
       onClick={handleClick}
-      className="group cursor-pointer bg-white rounded-lg border border-slate-100 
-                 hover:border-secondary-500 p-6 shadow-sm hover:shadow-lg 
+      className="group cursor-pointer bg-white rounded-lg border border-gray-100 
+                 hover:border-[#007bff] p-6 shadow-sm hover:shadow-lg 
                  transition-all duration-300 relative"
     >
       {isSearching && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center">
-          <div className="animate-spin w-6 h-6 border-2 border-primary-700 border-t-transparent rounded-full" />
+          <div className="animate-spin w-6 h-6 border-2 border-[#007bff] border-t-transparent rounded-full" />
         </div>
       )}
       <div className="flex items-center gap-4">
@@ -39,14 +39,14 @@ const VisualSearchPanel: React.FC<VisualSearchPanelProps> = ({ onClick, isSearch
             width="64"
             height="64"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-900/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         </div>
         <div>
-          <h3 className="font-semibold text-primary-900 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
             Visual Search
-            <Search className="h-5 w-5 text-secondary-500" aria-hidden="true" />
+            <Search className="h-5 w-5 text-[#007bff]" aria-hidden="true" />
           </h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Find similar artworks
           </p>
         </div>
