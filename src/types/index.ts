@@ -33,6 +33,7 @@ export interface AnalysisStep {
   title: string;
   description: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
+  percentComplete?: number;
 }
 
 export interface SearchResults {

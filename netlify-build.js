@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Netlify-specific build script that ignores TypeScript errors
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 console.log('🚀 Starting Netlify-specific build process...');
 

@@ -1,42 +1,151 @@
-import { useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useEffect, useCallback, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import AnalysisProgress from '../components/AnalysisProgress';
 import EmailCollectionCard from '../components/EmailCollectionCard';
 import ResultsDisplay from '../components/ResultsDisplay';
+import ProgressiveResults from '../components/ProgressiveResults';
+import ErrorRecoveryDialog from '../components/ErrorRecoveryDialog';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
+import { useProgressiveResults } from '../hooks/useProgressiveResults';
+import { useErrorRecovery } from '../hooks/useErrorRecovery';
+import { 
+  registerSession, 
+  updateSessionState, 
+  cleanupAbandonedSessions 
+} from '../utils/sessionRecovery';
+import { mergeWithFallbacks } from '../utils/fallbackService';
 
 function AnalyzePage() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [useFallbackResults, setUseFallbackResults] = useState(false);
+
+  // Use error recovery hook
+  const {
+    error: recoveryError,
+    isRecovering,
+    hasRecovered,
+    setError,
+    clearError,
+    retryOperation,
+    generateFallbackResults
+  } = useErrorRecovery();
 
   const {
     isInitializing,
     customerImage,
     gcsImageUrl,
     error,
-    currentStep,
     searchResults,
     submitEmail,
     hasEmailBeenSubmitted,
     analysisSteps,
     analyzeOrigin,
     isAnalyzingOrigin,
-    originResults
+    originResults,
+    isAnalyzing,
+    updateStepProgress,
+    overallProgress,
+    shouldPollResults
   } = useImageAnalysis(undefined, sessionId);
 
+  // Session registration and cleanup
+  useEffect(() => {
+    if (sessionId && customerImage) {
+      // Register this session for tracking
+      registerSession(sessionId, customerImage);
+      
+      // Clean up any abandoned sessions
+      cleanupAbandonedSessions();
+    }
+  }, [sessionId, customerImage]);
+
+  // Progressive results with error handling
+  const { partialResults } = useProgressiveResults({
+    apiUrl: import.meta.env.VITE_API_URL,
+    sessionId,
+    shouldPoll: shouldPollResults,
+    onStepProgress: (stepId, percentComplete) => {
+      updateStepProgress(stepId, 'processing', percentComplete);
+      
+      // Update session state with progress
+      if (sessionId) {
+        updateSessionState(sessionId, { currentStep: stepId });
+      }
+    },
+    onStepComplete: (stepId) => {
+      updateStepProgress(stepId, 'completed', 100);
+    },
+    onStepError: (stepId) => {
+      updateStepProgress(stepId, 'error', 0);
+      
+      // Show recovery dialog for failed steps
+      setError(`Analysis step "${stepId}" failed`, 
+        stepId === 'visual' ? 'network' : 'server',
+        { sessionId, stepId }
+      );
+      setShowRecoveryDialog(true);
+    },
+    onComplete: (results) => {
+      // This would be handled by the useImageAnalysis hook in a real implementation
+      console.log('Analysis complete:', results);
+    }
+  });
+  
+  // Handle timeout detection
+  useEffect(() => {
+    if (!isAnalyzing || !sessionId) return;
+    
+    // Set up timeout detection
+    const timeoutDuration = 2 * 60 * 1000; // 2 minutes
+    const timeoutId = setTimeout(() => {
+      // If we're still analyzing after the timeout, show recovery options
+      if (isAnalyzing) {
+        setError('Analysis is taking longer than expected', 'timeout', { sessionId });
+        setShowRecoveryDialog(true);
+      }
+    }, timeoutDuration);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isAnalyzing, sessionId, setError]);
+
+  // Email submission handler
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
     if (sessionId) {
       return await submitEmail(email);
     }
     return false;
   }, [sessionId, submitEmail]);
+  
+  // Retry handler for recovery dialog
+  const handleRetry = useCallback(() => {
+    retryOperation().then(success => {
+      if (success) {
+        setShowRecoveryDialog(false);
+      }
+    });
+  }, [retryOperation]);
+  
+  // Fallback handler for recovery dialog
+  const handleUseFallback = useCallback(() => {
+    setUseFallbackResults(true);
+    setShowRecoveryDialog(false);
+    clearError();
+  }, [clearError]);
+  
+  // Merge with fallbacks if needed
+  const finalResults = useFallbackResults && sessionId && (customerImage || gcsImageUrl)
+    ? generateFallbackResults(sessionId, customerImage || gcsImageUrl || '')
+    : searchResults;
 
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <AnalysisProgress steps={analysisSteps} />
+        <AnalysisProgress steps={analysisSteps} overallProgress={overallProgress} />
       </div>
     );
   }
@@ -91,37 +200,70 @@ function AnalyzePage() {
             </div>
           )}
 
-          {error && (
+          {error && !recoveryError && (
             <div className="mx-auto max-w-2xl mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-500" />
               <p className="text-red-700">{error}</p>
             </div>
           )}
 
-          {searchResults && !hasEmailBeenSubmitted && (
+          {/* Show analysis progress while analyzing */}
+          {isAnalyzing && (
+            <div className="mb-12">
+              <AnalysisProgress 
+                steps={analysisSteps} 
+                overallProgress={overallProgress}
+              />
+            </div>
+          )}
+
+          {/* Show progressive results as they become available */}
+          {(isAnalyzing || useFallbackResults) && (
+            <ProgressiveResults
+              partialResults={useFallbackResults ? finalResults : partialResults}
+              analysisSteps={analysisSteps}
+              sessionId={sessionId}
+              isAnalyzing={isAnalyzing}
+            />
+          )}
+
+          {finalResults && !hasEmailBeenSubmitted && (
             <EmailCollectionCard onSubmit={handleEmailSubmit} />
           )}
 
           <div className="space-y-16">
             <Services 
-              itemType={searchResults?.openai?.category || null}
+              itemType={finalResults?.metadata?.analysisResults?.openaiAnalysis?.category || null}
               submitEmail={handleEmailSubmit}
             />
-            {customerImage && (
+            {/* Show final results when analysis is complete or using fallbacks */}
+            {customerImage && (!isAnalyzing || useFallbackResults) && finalResults && (
               <ResultsDisplay 
-                searchResults={searchResults}
+                searchResults={finalResults}
                 sessionId={sessionId}
                 submitEmail={submitEmail}
                 onAnalyzeOrigin={analyzeOrigin}
                 isAnalyzingOrigin={isAnalyzingOrigin}
                 originResults={originResults}
-                isAnalyzing={false}
+                isAnalyzing={isAnalyzing && !useFallbackResults}
                 hasEmailBeenSubmitted={hasEmailBeenSubmitted}
               />
             )}
           </div>
         </div>
       </div>
+      
+      {/* Error Recovery Dialog */}
+      {showRecoveryDialog && recoveryError && (
+        <ErrorRecoveryDialog
+          error={recoveryError}
+          isRecovering={isRecovering}
+          hasRecovered={hasRecovered}
+          onRetry={handleRetry}
+          onFallback={handleUseFallback}
+          onDismiss={() => setShowRecoveryDialog(false)}
+        />
+      )}
     </>
   );
 }

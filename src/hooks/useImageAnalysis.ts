@@ -1,20 +1,51 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useImageUpload } from './api/useImageUpload';
 import { useEmailSubmission } from './api/useEmailSubmission';
-import { useAnalysisProgress } from './useAnalysisProgress';
 import { useAnalysisState } from './useAnalysisState';
 import { useFullAnalysis } from './useFullAnalysis';
-import type { SearchResults } from '../types';
+import type { SearchResults, AnalysisStep } from '../types';
+
+// Enhanced analysis steps with percentage completion tracking
+const ANALYSIS_STEPS: AnalysisStep[] = [
+  {
+    id: 'visual',
+    title: 'Visual Search',
+    description: 'Finding similar items...',
+    status: 'pending',
+    percentComplete: 0
+  },
+  {
+    id: 'details',
+    title: 'Details Analysis',
+    description: 'Analyzing characteristics...',
+    status: 'pending',
+    percentComplete: 0
+  },
+  {
+    id: 'origin',
+    title: 'Origin Check',
+    description: 'Determining likely origin...',
+    status: 'pending',
+    percentComplete: 0
+  },
+  {
+    id: 'market',
+    title: 'Market Research',
+    description: 'Finding comparable sales...',
+    status: 'pending',
+    percentComplete: 0
+  }
+];
 
 export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const effectiveApiUrl = apiUrl || import.meta.env.VITE_API_URL;
   
-  const {
-    isAnalyzing,
-    analysisSteps,
-    startAnalysis,
-    stopAnalysis
-  } = useAnalysisProgress();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>(ANALYSIS_STEPS);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [shouldPollResults, setShouldPollResults] = useState(false);
+  const [originResults, setOriginResults] = useState(null);
+  const [isAnalyzingOrigin, setIsAnalyzingOrigin] = useState(false);
 
   const {
     state,
@@ -36,18 +67,36 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     startFullAnalysis,
     error: analysisError
   } = useFullAnalysis(effectiveApiUrl, {
-    onStart: startAnalysis,
+    onStart: () => {
+      setIsAnalyzing(true);
+      setCurrentStepIndex(0);
+      setShouldPollResults(true);
+      
+      // Reset all steps
+      setAnalysisSteps(ANALYSIS_STEPS.map(step => ({ ...step, status: 'pending', percentComplete: 0 })));
+      
+      // Start first step as processing
+      updateStepProgress('visual', 'processing', 0);
+    },
     onComplete: (results) => {
       setState(prev => ({
         ...prev,
         searchResults: results,
         itemType: results?.metadata?.analysisResults?.openaiAnalysis?.category || null
       }));
-      stopAnalysis();
+      
+      // Mark all steps as completed
+      analysisSteps.forEach(step => {
+        updateStepProgress(step.id, 'completed', 100);
+      });
+      
+      setIsAnalyzing(false);
+      setShouldPollResults(false);
     },
     onError: (error) => {
       setState(prev => ({ ...prev, error }));
-      stopAnalysis();
+      setIsAnalyzing(false);
+      setShouldPollResults(false);
     }
   });
 
@@ -55,6 +104,40 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     submitEmail,
     error: emailError
   } = useEmailSubmission(effectiveApiUrl);
+
+  // Update a specific step's status and progress
+  const updateStepProgress = useCallback((stepId: string, status: AnalysisStep['status'], percentComplete: number) => {
+    setAnalysisSteps(current => 
+      current.map(step => 
+        step.id === stepId 
+          ? { ...step, status, percentComplete: Math.min(100, percentComplete) }
+          : step
+      )
+    );
+    
+    // If we've completed a step, move to the next one
+    if (status === 'completed') {
+      const stepIndex = analysisSteps.findIndex(step => step.id === stepId);
+      if (stepIndex >= 0 && stepIndex === currentStepIndex) {
+        setCurrentStepIndex(prev => Math.min(prev + 1, analysisSteps.length - 1));
+      }
+    }
+  }, [analysisSteps, currentStepIndex]);
+
+  // Determine the overall analysis progress percentage
+  const calculateOverallProgress = useCallback(() => {
+    const totalSteps = analysisSteps.length;
+    if (totalSteps === 0) return 0;
+    
+    const completedSteps = analysisSteps.filter(step => step.status === 'completed').length;
+    const currentStep = analysisSteps[currentStepIndex];
+    const currentStepContribution = 
+      currentStep && currentStep.status === 'processing' 
+        ? (currentStep.percentComplete / 100) / totalSteps 
+        : 0;
+    
+    return Math.min(100, Math.round((completedSteps / totalSteps + currentStepContribution) * 100));
+  }, [analysisSteps, currentStepIndex]);
 
   // Combine upload and analysis into a single flow
   const handleUpload = useCallback(async (file: File) => {
@@ -125,22 +208,69 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     }
   }, [uploadError, analysisError, emailError, setState]);
 
+  // Placeholder for origin analysis
+  const analyzeOrigin = useCallback(async () => {
+    if (!sessionId) return;
+    
+    try {
+      setIsAnalyzingOrigin(true);
+      
+      // This would be a real API call in the actual implementation
+      // const response = await fetch(`${effectiveApiUrl}/origin-analysis`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({ sessionId })
+      // });
+      
+      // Simulated response
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setOriginResults({
+        originality: 'original',
+        confidence: 0.85,
+        style_analysis: 'Abstract expressionist with contemporary influence',
+        unique_characteristics: [
+          'Bold brushstrokes',
+          'Vibrant color palette',
+          'Textured canvas surface',
+          'Asymmetrical composition'
+        ],
+        comparison_notes: 'Shows similarities to mid-century abstract works but with a contemporary approach',
+        recommendation: 'This appears to be an original work worthy of professional appraisal'
+      });
+    } catch (error) {
+      console.error('Origin analysis error:', error);
+    } finally {
+      setIsAnalyzingOrigin(false);
+    }
+  }, [sessionId, effectiveApiUrl]);
+
   return {
     uploadImage: handleUpload,
     startFullAnalysis,
     submitEmail: handleEmailSubmit,
+    analyzeOrigin,
     resetState,
     isUploading,
     isAnalyzing,
     isInitializing: state.isInitializing,
+    isAnalyzingOrigin,
     customerImage,
     sessionId,
     setSessionId,
     gcsImageUrl: state.gcsImageUrl,
     searchResults: state.searchResults,
+    originResults,
     error: state.error,
     analysisSteps,
     hasEmailBeenSubmitted: state.hasEmailBeenSubmitted,
-    itemType: state.itemType
+    itemType: state.itemType,
+    // Progressive loading properties
+    updateStepProgress,
+    overallProgress: calculateOverallProgress(),
+    shouldPollResults,
+    currentStepIndex
   };
 }
