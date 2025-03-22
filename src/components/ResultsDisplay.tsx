@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, ArrowRight, DollarSign, AlertCircle, TrendingUp, BarChart3, Clock } from 'lucide-react';
 import VisualSearchResults from './VisualSearchResults';
 import EmailCollector from './EmailCollector';
+import AuctionResults from './AuctionResults';
 import type { SearchResults } from '../types';
 
 interface ValueEstimationResult {
@@ -84,35 +85,63 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <p className="text-gray-700">{valueEstimation.explanation}</p>
             </div>
             
-            {valueEstimation.auctionResults && valueEstimation.auctionResults.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-500" />
-                  Recent Auction Results
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auction House</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {valueEstimation.auctionResults.slice(0, 5).map((result, index) => (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{result.title}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            ${result.price.toLocaleString()} {result.currency}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{result.house}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{result.date}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {valueEstimation && valueEstimation.auctionResults && valueEstimation.auctionResults.length > 0 && (
+              <div className="mb-8">
+                <AuctionResults 
+                  results={valueEstimation.auctionResults}
+                  minValue={valueEstimation.minValue}
+                  maxValue={valueEstimation.maxValue}
+                  mostLikelyValue={valueEstimation.mostLikelyValue}
+                />
+                
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-blue-500" />
+                      Comparable Auction Results
+                    </h3>
+                    <span className="text-sm text-gray-500">
+                      {valueEstimation.auctionResultsCount} results found
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {valueEstimation.auctionResults.map((result, index) => (
+                      <div key={index} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-4">
+                          <div className="flex justify-between items-start">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">{result.title}</h4>
+                            <span className="text-base font-bold text-green-600">
+                              ${result.price.toLocaleString()} {result.currency}
+                            </span>
+                          </div>
+                          
+                          <div className="mt-2 text-xs text-gray-500 space-y-1">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>{result.date}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium">Auction House:</span> {result.house}
+                            </div>
+                            {result.description && (
+                              <div className="mt-2 pt-2 border-t border-gray-100">
+                                <p className="text-gray-700 line-clamp-2">
+                                  {result.description}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 italic">
+                    These comparable items from recent auctions were used to inform our value estimation. 
+                    Each item has been selected based on its similarity to your item in terms of style, 
+                    age, condition, and other relevant factors.
+                  </p>
                 </div>
               </div>
             )}
