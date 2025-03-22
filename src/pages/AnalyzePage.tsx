@@ -6,10 +6,12 @@ import AnalysisProgress from '../components/AnalysisProgress';
 import EmailCollectionCard from '../components/EmailCollectionCard';
 import ResultsDisplay from '../components/ResultsDisplay';
 import ProgressiveResults from '../components/ProgressiveResults';
+import ValueEstimationProgress from '../components/ValueEstimationProgress';
 import ErrorRecoveryDialog from '../components/ErrorRecoveryDialog';
 import Services from '../components/Services';
 import { useImageAnalysis } from '../hooks/useImageAnalysis';
 import { useProgressiveResults } from '../hooks/useProgressiveResults';
+import { useValueEstimation } from '../hooks/useValueEstimation';
 import { useErrorRecovery } from '../hooks/useErrorRecovery';
 import { 
   registerSession, 
@@ -23,6 +25,8 @@ function AnalyzePage() {
   const navigate = useNavigate();
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [useFallbackResults, setUseFallbackResults] = useState(false);
+  const [showValueEstimationProgress, setShowValueEstimationProgress] = useState(false);
+  const [skipValueEstimation, setSkipValueEstimation] = useState(false);
 
   // Use error recovery hook
   const {
@@ -52,6 +56,15 @@ function AnalyzePage() {
     overallProgress,
     shouldPollResults
   } = useImageAnalysis(undefined, sessionId);
+  
+  // Value estimation hook
+  const {
+    getValueEstimation,
+    isLoading: isValueEstimationLoading,
+    error: valueEstimationError,
+    result: valueEstimationResult,
+    progress: valueEstimationProgress
+  } = useValueEstimation(import.meta.env.VITE_API_URL || 'http://localhost:8080');
 
   // Session registration and cleanup
   useEffect(() => {
@@ -79,6 +92,14 @@ function AnalyzePage() {
     },
     onStepComplete: (stepId) => {
       updateStepProgress(stepId, 'completed', 100);
+      
+      // When origin analysis is complete, trigger value estimation
+      if (stepId === 'origin' && sessionId && !skipValueEstimation) {
+        setShowValueEstimationProgress(true);
+        getValueEstimation(sessionId).catch(err => {
+          console.error('Value estimation failed:', err);
+        });
+      }
     },
     onStepError: (stepId) => {
       updateStepProgress(stepId, 'error', 0);
@@ -216,6 +237,23 @@ function AnalyzePage() {
               />
             </div>
           )}
+          
+          {/* Show value estimation progress */}
+          {showValueEstimationProgress && valueEstimationProgress.status !== 'idle' && !valueEstimationResult && (
+            <div className="mb-12 mt-8">
+              <ValueEstimationProgress
+                status={valueEstimationProgress.status}
+                percentComplete={valueEstimationProgress.percentComplete}
+                stage={valueEstimationProgress.stage}
+                message={valueEstimationProgress.message}
+                estimatedTimeRemaining={valueEstimationProgress.estimatedTimeRemaining}
+                onCancel={() => {
+                  setSkipValueEstimation(true);
+                  setShowValueEstimationProgress(false);
+                }}
+              />
+            </div>
+          )}
 
           {/* Show progressive results as they become available */}
           {(isAnalyzing || useFallbackResults) && (
@@ -247,6 +285,7 @@ function AnalyzePage() {
                 originResults={originResults}
                 isAnalyzing={isAnalyzing && !useFallbackResults}
                 hasEmailBeenSubmitted={hasEmailBeenSubmitted}
+                valueEstimation={valueEstimationResult}
               />
             )}
           </div>
