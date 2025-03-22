@@ -66,26 +66,26 @@ const ErrorRecoveryDialog: React.FC<ErrorRecoveryDialogProps> = ({
   // Get user-friendly recovery message
   const getRecoveryMessage = () => {
     if (hasRecovered) {
-      return 'We've successfully recovered from the error!';
+      return "We have successfully recovered from the error!";
     }
     
     if (isRecovering) {
-      return 'Attempting to recover...';
+      return "Attempting to recover...";
     }
     
     if (error.recoverable) {
       switch (error.category) {
         case 'network':
-          return 'We're having trouble connecting to our servers. Would you like to retry?';
+          return "We are having trouble connecting to our servers. Would you like to retry?";
         case 'server':
-          return 'Our servers are experiencing an issue. Would you like to retry?';
+          return "Our servers are experiencing an issue. Would you like to retry?";
         case 'timeout':
-          return 'The analysis is taking longer than expected. Would you like to retry?';
+          return "The analysis is taking longer than expected. Would you like to retry?";
         default:
-          return 'We encountered an issue with your analysis. Would you like to retry?';
+          return "We encountered an issue with your analysis. Would you like to retry?";
       }
     } else {
-      return 'We encountered an issue that we can't automatically recover from.';
+      return "We encountered an issue that we cannot automatically recover from.";
     }
   };
   
