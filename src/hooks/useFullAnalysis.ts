@@ -35,9 +35,21 @@ export function useFullAnalysis(apiUrl: string, callbacks: AnalysisCallbacks) {
       if (!data.success) {
         throw new Error(data.message || 'Analysis failed');
       }
+      
+      console.log('Full analysis API returned complete data:', data);
+      
+      // Ensure we're capturing all the data from the response
+      const completeResults = {
+        metadata: data.results.metadata,
+        detailedAnalysis: data.results.detailedAnalysis,
+        // Include any other fields that might be present
+        ...(data.results.visualAnalysis && { visualAnalysis: data.results.visualAnalysis }),
+        ...(data.results.originAnalysis && { originAnalysis: data.results.originAnalysis }),
+        timestamp: data.timestamp || Date.now()
+      };
 
-      onComplete?.(data.results);
-      return data.results;
+      onComplete?.(completeResults);
+      return completeResults;
 
     } catch (err) {
       const error = err instanceof Error ? err.message : 'Analysis failed';

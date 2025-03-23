@@ -169,6 +169,7 @@ export function useProgressiveResults({
           
           // If all analysis is complete, call the onComplete callback
           if (data.data.status === 'complete' && data.data.results) {
+            console.log('Analysis complete with full results:', data.data.results);
             onComplete(data.data.results);
             return true; // Stop polling
           }

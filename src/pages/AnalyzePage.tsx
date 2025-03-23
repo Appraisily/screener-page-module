@@ -93,12 +93,21 @@ function AnalyzePage() {
     onStepComplete: (stepId) => {
       updateStepProgress(stepId, 'completed', 100);
       
-      // When origin analysis is complete, trigger value estimation
-      if (stepId === 'origin' && sessionId && !skipValueEstimation) {
-        setShowValueEstimationProgress(true);
-        getValueEstimation(sessionId).catch(err => {
-          console.error('Value estimation failed:', err);
-        });
+      // When any major analysis step completes, check if we can start value estimation
+      // Prioritize starting after 'origin' analysis, but also start after 'details' if that's available
+      if ((stepId === 'origin' || stepId === 'details') && sessionId && !skipValueEstimation) {
+        // Check if we have detailed analysis data before starting value estimation
+        const hasDetailedData = !!partialResults?.detailedAnalysis;
+        
+        if (hasDetailedData) {
+          console.log(`Starting value estimation after ${stepId} analysis completion`);
+          setShowValueEstimationProgress(true);
+          getValueEstimation(sessionId).catch(err => {
+            console.error('Value estimation failed:', err);
+          });
+        } else {
+          console.log(`Completed ${stepId} but waiting for detailed analysis before value estimation`);
+        }
       }
     },
     onStepError: (stepId) => {
@@ -112,8 +121,19 @@ function AnalyzePage() {
       setShowRecoveryDialog(true);
     },
     onComplete: (results) => {
-      // This would be handled by the useImageAnalysis hook in a real implementation
-      console.log('Analysis complete:', results);
+      console.log('Full analysis complete with results:', results);
+      
+      // Update the searchResults state with the complete results
+      if (results.metadata && results.detailedAnalysis) {
+        // Trigger value estimation automatically when full analysis is complete
+        if (sessionId && !skipValueEstimation) {
+          console.log('Auto-starting value estimation for session:', sessionId);
+          setShowValueEstimationProgress(true);
+          getValueEstimation(sessionId).catch(err => {
+            console.error('Auto-triggered value estimation failed:', err);
+          });
+        }
+      }
     }
   });
   
