@@ -39,8 +39,7 @@ export function useProgressiveResults({
     
     try {
       // Call the backend endpoint that would check for partial results
-      // In a real implementation, this endpoint would return whatever analysis 
-      // results are available so far
+      console.log(`Polling status for session ${sessionId}...`);
       const response = await fetch(`${apiUrl}/session/${sessionId}/status`, {
         method: 'GET',
         headers: {
@@ -49,73 +48,131 @@ export function useProgressiveResults({
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch analysis status');
-      }
-      
-      const data = await response.json();
-      
-      // If we have partial data available
-      if (data.success && data.data) {
-        setPartialResults(data.data.results || {});
+        console.warn(`Status endpoint returned ${response.status}. Falling back to session endpoint...`);
+        // Fallback to general session endpoint if status endpoint fails
+        const fallbackResponse = await fetch(`${apiUrl}/session/${sessionId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         
-        // Update progress for each step based on the response
-        // This is a simplified example - in a real implementation, 
-        // the backend would return detailed progress info
+        if (!fallbackResponse.ok) {
+          throw new Error(`Failed to fetch session data: ${fallbackResponse.status}`);
+        }
         
-        // Visual search step
-        if (data.data.visual_progress) {
-          const visualProgress = data.data.visual_progress;
-          onStepProgress('visual', visualProgress.percent || 0);
+        const fallbackData = await fallbackResponse.json();
+        
+        if (fallbackData.success && fallbackData.session) {
+          // Create a synthetic progress update based on available data
+          const { metadata, analysis, origin, detailed } = fallbackData.session;
           
-          if (visualProgress.status === 'complete') {
+          // Set available results
+          const partialData = {
+            metadata,
+            ...(analysis && { visualAnalysis: analysis }),
+            ...(detailed && { detailedAnalysis: detailed }),
+            ...(origin && { originAnalysis: origin })
+          };
+          
+          setPartialResults(partialData);
+          
+          // Simulate progress updates based on what data is available
+          if (analysis) {
+            onStepProgress('visual', 100);
             onStepComplete('visual');
-          } else if (visualProgress.status === 'error') {
-            onStepError('visual');
+          } else {
+            onStepProgress('visual', 50);
           }
-        }
-        
-        // Details analysis step
-        if (data.data.details_progress) {
-          const detailsProgress = data.data.details_progress;
-          onStepProgress('details', detailsProgress.percent || 0);
           
-          if (detailsProgress.status === 'complete') {
+          if (detailed) {
+            onStepProgress('details', 100);
             onStepComplete('details');
-          } else if (detailsProgress.status === 'error') {
-            onStepError('details');
+          } else if (analysis) { // If visual is done, details might be in progress
+            onStepProgress('details', 50);
           }
-        }
-        
-        // Origin check step
-        if (data.data.origin_progress) {
-          const originProgress = data.data.origin_progress;
-          onStepProgress('origin', originProgress.percent || 0);
           
-          if (originProgress.status === 'complete') {
+          if (origin) {
+            onStepProgress('origin', 100);
             onStepComplete('origin');
-          } else if (originProgress.status === 'error') {
-            onStepError('origin');
+            // If origin is complete, start market research
+            onStepProgress('market', 30);
+          } else if (detailed) { // If details is done, origin might be in progress
+            onStepProgress('origin', 50);
           }
-        }
-        
-        // Market research step
-        if (data.data.market_progress) {
-          const marketProgress = data.data.market_progress;
-          onStepProgress('market', marketProgress.percent || 0);
           
-          if (marketProgress.status === 'complete') {
-            onStepComplete('market');
-          } else if (marketProgress.status === 'error') {
-            onStepError('market');
+          // Check if all steps are complete
+          if (analysis && detailed && origin) {
+            onComplete(partialData as SearchResults);
+            return true; // Stop polling
+          }
+          
+          return false; // Continue polling
+        }
+      } else {
+        const data = await response.json();
+        
+        // If we have partial data available
+        if (data.success && data.data) {
+          console.log('Received status update:', data.data);
+          setPartialResults(data.data.results || {});
+          
+          // Update progress for each step based on the response
+          
+          // Visual search step
+          if (data.data.visual_progress) {
+            const visualProgress = data.data.visual_progress;
+            onStepProgress('visual', visualProgress.percent || 0);
+            
+            if (visualProgress.status === 'complete') {
+              onStepComplete('visual');
+            } else if (visualProgress.status === 'error') {
+              onStepError('visual');
+            }
+          }
+          
+          // Details analysis step
+          if (data.data.details_progress) {
+            const detailsProgress = data.data.details_progress;
+            onStepProgress('details', detailsProgress.percent || 0);
+            
+            if (detailsProgress.status === 'complete') {
+              onStepComplete('details');
+            } else if (detailsProgress.status === 'error') {
+              onStepError('details');
+            }
+          }
+          
+          // Origin check step
+          if (data.data.origin_progress) {
+            const originProgress = data.data.origin_progress;
+            onStepProgress('origin', originProgress.percent || 0);
+            
+            if (originProgress.status === 'complete') {
+              onStepComplete('origin');
+            } else if (originProgress.status === 'error') {
+              onStepError('origin');
+            }
+          }
+          
+          // Market research step
+          if (data.data.market_progress) {
+            const marketProgress = data.data.market_progress;
+            onStepProgress('market', marketProgress.percent || 0);
+            
+            if (marketProgress.status === 'complete') {
+              onStepComplete('market');
+            } else if (marketProgress.status === 'error') {
+              onStepError('market');
+            }
+          }
+          
+          // If all analysis is complete, call the onComplete callback
+          if (data.data.status === 'complete' && data.data.results) {
+            onComplete(data.data.results);
+            return true; // Stop polling
           }
         }
-        
-        // If all analysis is complete, call the onComplete callback
-        if (data.data.status === 'complete' && data.data.results) {
-          onComplete(data.data.results);
-          return true; // Stop polling
-        }
-      }
       
       // For demo purposes, let's simulate progress
       // In a real implementation, remove this simulation
