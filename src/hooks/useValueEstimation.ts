@@ -162,6 +162,8 @@ export function useValueEstimation(apiUrl: string) {
     setError(null);
     setIsLoading(true);
     
+    console.log(`Starting value estimation for session: ${sessionId}`);
+    
     // Initialize progress state
     setProgress({
       status: 'processing',
@@ -184,6 +186,8 @@ export function useValueEstimation(apiUrl: string) {
 
     try {
       // Make the actual API call
+      console.log(`Making request to ${apiUrl}/find-value for session ${sessionId}`);
+      
       const response = await fetch(`${apiUrl}/find-value`, {
         method: 'POST',
         headers: {
@@ -192,11 +196,18 @@ export function useValueEstimation(apiUrl: string) {
         body: JSON.stringify({ sessionId })
       });
 
+      // Log the response status
+      console.log(`Value estimation API response status: ${response.status}`);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get more details from the error response
+        const errorText = await response.text();
+        console.error(`Value estimation API error: ${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Value estimation API response:', data);
       
       if (!data.success) {
         throw new Error(data.message || 'Failed to get value estimation');

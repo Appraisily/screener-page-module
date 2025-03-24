@@ -125,6 +125,20 @@ function AnalyzePage() {
       
       // Update the searchResults state with the complete results
       if (results.metadata && results.detailedAnalysis) {
+        // Check if we have the required concise_description field for value estimation
+        if (!results.detailedAnalysis.concise_description) {
+          console.warn('Missing concise_description in detailedAnalysis, value estimation might fail');
+          
+          // Add a fallback description if missing
+          if (results.metadata.analysisResults?.openaiAnalysis?.description) {
+            const fallbackDescription = `${results.metadata.analysisResults.openaiAnalysis.category || 'Art'} ${results.metadata.analysisResults.openaiAnalysis.description}`;
+            console.log(`Using fallback description for value estimation: "${fallbackDescription}"`);
+            
+            // Add the concise_description field to the results
+            results.detailedAnalysis.concise_description = fallbackDescription;
+          }
+        }
+        
         // Trigger value estimation automatically when full analysis is complete
         if (sessionId && !skipValueEstimation) {
           console.log('Auto-starting value estimation for session:', sessionId);

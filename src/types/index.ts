@@ -2,6 +2,7 @@
 export type ItemType = 'Art' | 'Antique';
 
 export interface DetailedAnalysis {
+  concise_description?: string; // Added to match the backend response
   maker_analysis: {
     creator_name: string;
     reasoning: string;
