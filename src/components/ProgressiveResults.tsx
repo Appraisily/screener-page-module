@@ -25,11 +25,17 @@ const ProgressiveResults: React.FC<ProgressiveResultsProps> = ({
   // Get the currently processing step
   const currentStep = analysisSteps.find(s => s.status === 'processing');
 
+  // Safeguard against potential null/undefined values and initialize variables to prevent runtime errors
+  const safePartialResults = partialResults || {};
+  const safeMetadata = safePartialResults.metadata || {};
+  const safeAnalysisResults = safeMetadata.analysisResults || {};
+  const safeDetailedAnalysis = safePartialResults.detailedAnalysis || null;
+  
   // Determine if we have some visual search results to show
-  const hasVisualResults = partialResults?.metadata?.analysisResults?.webEntities !== undefined;
+  const hasVisualResults = safeAnalysisResults.webEntities !== undefined;
   
   // Determine if we have detailed analysis to show
-  const hasDetailedResults = partialResults?.detailedAnalysis !== undefined;
+  const hasDetailedResults = safeDetailedAnalysis !== null;
 
   return (
     <div className="max-w-4xl mx-auto">

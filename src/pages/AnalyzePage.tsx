@@ -121,32 +121,69 @@ function AnalyzePage() {
       setShowRecoveryDialog(true);
     },
     onComplete: (results) => {
-      console.log('Full analysis complete with results:', results);
-      
-      // Update the searchResults state with the complete results
-      if (results.metadata && results.detailedAnalysis) {
-        // Check if we have the required concise_description field for value estimation
-        if (!results.detailedAnalysis.concise_description) {
-          console.warn('Missing concise_description in detailedAnalysis, value estimation might fail');
-          
-          // Add a fallback description if missing
-          if (results.metadata.analysisResults?.openaiAnalysis?.description) {
-            const fallbackDescription = `${results.metadata.analysisResults.openaiAnalysis.category || 'Art'} ${results.metadata.analysisResults.openaiAnalysis.description}`;
-            console.log(`Using fallback description for value estimation: "${fallbackDescription}"`);
-            
-            // Add the concise_description field to the results
-            results.detailedAnalysis.concise_description = fallbackDescription;
-          }
+      try {
+        console.log('Full analysis complete with results:', results);
+        
+        // Perform safe, defensive validation before processing
+        if (!results) {
+          console.error('Received null/undefined results from analysis');
+          return;
         }
         
-        // Trigger value estimation automatically when full analysis is complete
-        if (sessionId && !skipValueEstimation) {
-          console.log('Auto-starting value estimation for session:', sessionId);
-          setShowValueEstimationProgress(true);
-          getValueEstimation(sessionId).catch(err => {
-            console.error('Auto-triggered value estimation failed:', err);
-          });
+        // Create safe copies of required objects with default values to prevent access before initialization errors
+        const safeResults = {
+          metadata: results.metadata || {},
+          detailedAnalysis: results.detailedAnalysis || {},
+          // Add other fields as needed
+        };
+        
+        // Safe access to nested properties
+        const safeMetadata = safeResults.metadata || {};
+        const safeAnalysisResults = safeMetadata.analysisResults || {};
+        const safeOpenAIAnalysis = safeAnalysisResults.openaiAnalysis || {};
+        const safeDetailedAnalysis = safeResults.detailedAnalysis || {};
+        
+        // Update the searchResults state with the complete results
+        if (safeMetadata && safeDetailedAnalysis) {
+          // Check if we have the required concise_description field for value estimation
+          if (!safeDetailedAnalysis.concise_description) {
+            console.warn('Missing concise_description in detailedAnalysis, value estimation might fail');
+            
+            // Add a fallback description if missing
+            if (safeOpenAIAnalysis.description) {
+              const fallbackDescription = `${safeOpenAIAnalysis.category || 'Art'} ${safeOpenAIAnalysis.description}`;
+              console.log(`Using fallback description for value estimation: "${fallbackDescription}"`);
+              
+              // Add the concise_description field to the results
+              safeDetailedAnalysis.concise_description = fallbackDescription;
+            } else {
+              // Ultimate fallback if we have nothing else
+              safeDetailedAnalysis.concise_description = "Unknown Art Item";
+              console.log("Using generic fallback description for value estimation");
+            }
+          }
+          
+          // Trigger value estimation automatically when full analysis is complete
+          if (sessionId && !skipValueEstimation) {
+            console.log('Auto-starting value estimation for session:', sessionId);
+            
+            // Use setTimeout to break the call chain and prevent potential race conditions
+            setTimeout(() => {
+              try {
+                setShowValueEstimationProgress(true);
+                getValueEstimation(sessionId).catch(err => {
+                  console.error('Auto-triggered value estimation failed:', err);
+                });
+              } catch (valEstErr) {
+                console.error('Error starting value estimation:', valEstErr);
+              }
+            }, 0);
+          }
+        } else {
+          console.warn('Missing required metadata or detailedAnalysis in results');
         }
+      } catch (error) {
+        console.error('Error processing analysis results:', error);
       }
     }
   });
