@@ -44,7 +44,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
     webEntities: ['Art', 'Painting'],
     similarImages: [
       'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image1.jpg',
-      'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image2.png',
+      'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image2.jpg',
       'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image3.jpg',
       'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image4.jpg',
       'https://ik.imagekit.io/appraisily/WebPage/Appraisal%20Example%20Free/similar-image5.jpg'

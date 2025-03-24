@@ -41,14 +41,8 @@ export function useValueEstimation(apiUrl: string) {
   });
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
-  // Clean up interval on unmount
-  useEffect(() => {
-    return () => {
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-      }
-    };
-  }, [statusCheckInterval]);
+  // Define getValueEstimation function reference for circular dependency
+  let getValueEstimationRef: (sessionId: string) => Promise<ValueEstimationResult | null>;
 
   // Function to check the status of value estimation
   const checkValueEstimationStatus = useCallback(async (sessionId: string) => {
@@ -126,7 +120,9 @@ export function useValueEstimation(apiUrl: string) {
         }
         
         // Automatically fetch the complete results
-        getValueEstimation(sessionId);
+        if (getValueEstimationRef) {
+          getValueEstimationRef(sessionId);
+        }
       } else if (data.status === 'error') {
         setProgress({
           status: 'error',
@@ -153,7 +149,17 @@ export function useValueEstimation(apiUrl: string) {
       console.error('Error checking value estimation status:', err);
       // Don't update progress on network errors, just keep trying
     }
-  }, [apiUrl, statusCheckInterval, getValueEstimation]);
+  }, [apiUrl, statusCheckInterval]);
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        setStatusCheckInterval(null);
+      }
+    };
+  }, [statusCheckInterval]);
 
   // Main function to start value estimation
   const getValueEstimation = useCallback(async (sessionId: string): Promise<ValueEstimationResult | null> => {
@@ -253,6 +259,9 @@ export function useValueEstimation(apiUrl: string) {
       setIsLoading(false);
     }
   }, [apiUrl, progress.percentComplete, statusCheckInterval, checkValueEstimationStatus]);
+
+  // Assign the getValueEstimation function to the reference
+  getValueEstimationRef = getValueEstimation;
 
   return {
     getValueEstimation,

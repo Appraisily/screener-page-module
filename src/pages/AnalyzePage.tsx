@@ -95,7 +95,7 @@ function AnalyzePage() {
       
       // When any major analysis step completes, check if we can start value estimation
       // Prioritize starting after 'origin' analysis, but also start after 'details' if that's available
-      if ((stepId === 'origin' || stepId === 'details') && sessionId && !skipValueEstimation) {
+      if ((stepId === 'origin' || stepId === 'details') && sessionId && !skipValueEstimation && getValueEstimation) {
         // Check if we have detailed analysis data before starting value estimation
         const hasDetailedData = !!partialResults?.detailedAnalysis;
         
@@ -137,7 +137,8 @@ function AnalyzePage() {
           // Add other fields as needed
         };
         
-        // Safe access to nested properties
+        // Define all variables that will be used before accessing them
+        // Safe access to nested properties with null/undefined checks at each level
         const safeMetadata = safeResults.metadata || {};
         const safeAnalysisResults = safeMetadata.analysisResults || {};
         const safeOpenAIAnalysis = safeAnalysisResults.openaiAnalysis || {};

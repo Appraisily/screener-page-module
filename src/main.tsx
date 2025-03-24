@@ -4,10 +4,36 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Router basename="/">
-      <App />
-    </Router>
-  </StrictMode>
-);
+// Global error handler to prevent UI crashes from non-critical resources
+window.addEventListener('error', (event) => {
+  // Check if error is from external resources like widget.js or widget.css
+  if (event.filename && (
+    event.filename.includes('widget.js') || 
+    event.filename.includes('widget.css') ||
+    event.filename.includes('tangerine-churros')
+  )) {
+    console.warn('Non-critical resource failed to load:', event.filename);
+    // Prevent error from propagating
+    event.preventDefault();
+    return true; // Handled
+  }
+  return false; // Not handled
+}, true);
+
+// Initialize the app with proper error boundaries
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  try {
+    createRoot(rootElement).render(
+      <StrictMode>
+        <Router basename="/">
+          <App />
+        </Router>
+      </StrictMode>
+    );
+  } catch (error) {
+    console.error('Failed to render app:', error);
+    // Fallback to a simpler rendering without StrictMode if needed
+    rootElement.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Error loading application</h1><p>Please refresh the page to try again</p></div>';
+  }
+}
