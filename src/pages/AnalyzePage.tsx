@@ -174,11 +174,17 @@ function AnalyzePage() {
             setTimeout(() => {
               try {
                 setShowValueEstimationProgress(true);
-                getValueEstimation(sessionId).catch(err => {
-                  console.error('Auto-triggered value estimation failed:', err);
-                });
+                getValueEstimation(sessionId)
+                  .then(result => {
+                    console.log('Value estimation completed successfully:', result);
+                  })
+                  .catch(err => {
+                    console.error('Auto-triggered value estimation failed:', err);
+                    // Don't let errors break the UI
+                  });
               } catch (valEstErr) {
                 console.error('Error starting value estimation:', valEstErr);
+                // Continue showing UI even if value estimation fails
               }
             }, 0);
           }

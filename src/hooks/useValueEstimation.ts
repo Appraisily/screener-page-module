@@ -242,12 +242,52 @@ export function useValueEstimation(apiUrl: string) {
                 });
                 return;
               }
-              throw new Error(`HTTP error! status: ${response.status}`);
+              // Don't throw an error for other status codes during polling
+              // Just log and continue
+              console.warn(`Value estimation status endpoint returned status: ${response.status}`);
+              return null;
             }
             return response.json();
           })
           .then(data => {
-            if (!data) return;
+            if (!data) {
+              // Handle null response (from 404 or other error)
+              // Continue showing progress simulation
+              setProgress(prev => {
+                // Don't overwrite if already completed/errored
+                if (prev.status === 'completed' || prev.status === 'error') return prev;
+                
+                const newPercent = Math.min(prev.percentComplete + 3, 95);
+                let stage = prev.stage;
+                let message = prev.message;
+                
+                if (newPercent < 20) {
+                  stage = 'Finding similar items';
+                  message = 'Searching auction databases for similar items...';
+                } else if (newPercent < 40) {
+                  stage = 'Analyzing market trends';
+                  message = 'Analyzing recent market trends for this type of item...';
+                } else if (newPercent < 60) {
+                  stage = 'Evaluating condition factors';
+                  message = 'Evaluating condition and quality factors...';
+                } else if (newPercent < 80) {
+                  stage = 'Calculating value ranges';
+                  message = 'Calculating probable value ranges based on data...';
+                } else {
+                  stage = 'Finalizing appraisal';
+                  message = 'Finalizing value estimation and preparing report...';
+                }
+                
+                return {
+                  status: 'processing',
+                  percentComplete: newPercent,
+                  stage,
+                  message,
+                  estimatedTimeRemaining: Math.round((100 - newPercent) / 3)
+                };
+              });
+              return;
+            }
             
             if (data.status === 'completed') {
               setProgress({
