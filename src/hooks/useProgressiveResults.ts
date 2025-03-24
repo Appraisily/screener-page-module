@@ -174,6 +174,7 @@ export function useProgressiveResults({
             return true; // Stop polling
           }
         }
+      }
       
       // For demo purposes, let's simulate progress
       // In a real implementation, remove this simulation
