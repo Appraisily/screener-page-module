@@ -9,10 +9,12 @@ import ProgressiveResults from '../components/ProgressiveResults';
 import ValueEstimationProgress from '../components/ValueEstimationProgress';
 import ErrorRecoveryDialog from '../components/ErrorRecoveryDialog';
 import Services from '../components/Services';
-import { useImageAnalysis } from '../hooks/useImageAnalysis';
-import { useProgressiveResults } from '../hooks/useProgressiveResults';
-import { useValueEstimation } from '../hooks/useValueEstimation';
-import { useErrorRecovery } from '../hooks/useErrorRecovery';
+import { 
+  useImageAnalysis,
+  useProgressiveResults,
+  useValueEstimation,
+  useErrorRecovery 
+} from '../hooks'; // Import from centralized hooks index
 import { 
   registerSession, 
   updateSessionState, 

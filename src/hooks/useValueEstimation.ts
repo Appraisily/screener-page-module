@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface AuctionResult {
   title: string;
@@ -41,8 +41,8 @@ export function useValueEstimation(apiUrl: string) {
   });
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
-  // Define getValueEstimation function reference for circular dependency
-  let getValueEstimationRef: (sessionId: string) => Promise<ValueEstimationResult | null>;
+  // Create a stable reference for the getValueEstimation function to prevent initialization issues
+  const getValueEstimationRef = useRef<(sessionId: string) => Promise<ValueEstimationResult | null>>();
 
   // Function to check the status of value estimation
   const checkValueEstimationStatus = useCallback(async (sessionId: string) => {
@@ -120,8 +120,8 @@ export function useValueEstimation(apiUrl: string) {
         }
         
         // Automatically fetch the complete results
-        if (getValueEstimationRef) {
-          getValueEstimationRef(sessionId);
+        if (getValueEstimationRef.current) {
+          getValueEstimationRef.current(sessionId);
         }
       } else if (data.status === 'error') {
         setProgress({
@@ -161,10 +161,15 @@ export function useValueEstimation(apiUrl: string) {
     };
   }, [statusCheckInterval]);
 
-  // Main function to start value estimation
-  const getValueEstimation = useCallback(async (sessionId: string): Promise<ValueEstimationResult | null> => {
-    if (!sessionId) return null;
+  // Main function to start value estimation - completely rewritten to avoid circular dependencies
+  const getValueEstimation = useCallback(function safeGetValueEstimation(sessionId: string): Promise<ValueEstimationResult | null> {
+    // Guard against null session ID
+    if (!sessionId) {
+      console.error('getValueEstimation called with null sessionId');
+      return Promise.resolve(null);
+    }
 
+    // Reset error state and set loading
     setError(null);
     setIsLoading(true);
     
@@ -182,86 +187,192 @@ export function useValueEstimation(apiUrl: string) {
     // Set up status polling (every 2 seconds)
     if (statusCheckInterval) {
       clearInterval(statusCheckInterval);
+      setStatusCheckInterval(null);
     }
     
-    const interval = setInterval(() => {
-      checkValueEstimationStatus(sessionId);
-    }, 2000);
-    
-    setStatusCheckInterval(interval);
-
+    // Start a new status check interval
     try {
+      const newInterval = setInterval(() => {
+        // Safe call to prevent circular references
+        try {
+          const safeSessionId = sessionId;
+          
+          // Directly implement status checking logic to avoid circular dependencies
+          fetch(`${apiUrl}/find-value/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: safeSessionId })
+          })
+          .then(response => {
+            if (!response.ok) {
+              if (response.status === 404) {
+                // Simulate progress based on time
+                setProgress(prev => {
+                  // Don't overwrite if already completed/errored
+                  if (prev.status === 'completed' || prev.status === 'error') return prev;
+                  
+                  const newPercent = Math.min(prev.percentComplete + 3, 95);
+                  let stage = prev.stage;
+                  let message = prev.message;
+                  
+                  if (newPercent < 20) {
+                    stage = 'Finding similar items';
+                    message = 'Searching auction databases for similar items...';
+                  } else if (newPercent < 40) {
+                    stage = 'Analyzing market trends';
+                    message = 'Analyzing recent market trends for this type of item...';
+                  } else if (newPercent < 60) {
+                    stage = 'Evaluating condition factors';
+                    message = 'Evaluating condition and quality factors...';
+                  } else if (newPercent < 80) {
+                    stage = 'Calculating value ranges';
+                    message = 'Calculating probable value ranges based on data...';
+                  } else {
+                    stage = 'Finalizing appraisal';
+                    message = 'Finalizing value estimation and preparing report...';
+                  }
+                  
+                  return {
+                    status: 'processing',
+                    percentComplete: newPercent,
+                    stage,
+                    message,
+                    estimatedTimeRemaining: Math.round((100 - newPercent) / 3)
+                  };
+                });
+                return;
+              }
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (!data) return;
+            
+            if (data.status === 'completed') {
+              setProgress({
+                status: 'completed',
+                percentComplete: 100,
+                stage: 'Value estimation complete',
+                message: 'Your item value estimation is ready!'
+              });
+              
+              if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                setStatusCheckInterval(null);
+              }
+            } else if (data.status === 'error') {
+              setProgress({
+                status: 'error',
+                percentComplete: data.percentComplete || 0,
+                stage: 'Error in value estimation',
+                message: data.message || 'An error occurred during value estimation'
+              });
+              
+              if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                setStatusCheckInterval(null);
+              }
+            } else {
+              setProgress({
+                status: data.status || 'processing',
+                percentComplete: data.percentComplete || 0,
+                stage: data.stage || 'Processing',
+                message: data.message || 'Analyzing your item for value estimation...',
+                estimatedTimeRemaining: data.estimatedTimeRemaining
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Error checking value estimation status:', err);
+          });
+        } catch (innerErr) {
+          console.error('Error in status check interval:', innerErr);
+        }
+      }, 2000);
+      
+      setStatusCheckInterval(newInterval);
+    } catch (err) {
+      console.error('Error setting up status check interval:', err);
+    }
+    
+    // Return a promise that handles the API call
+    return new Promise((resolve, reject) => {
       // Make the actual API call
       console.log(`Making request to ${apiUrl}/find-value for session ${sessionId}`);
       
-      const response = await fetch(`${apiUrl}/find-value`, {
+      fetch(`${apiUrl}/find-value`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ sessionId })
+      })
+      .then(response => {
+        // Log the response status
+        console.log(`Value estimation API response status: ${response.status}`);
+        
+        if (!response.ok) {
+          // Try to get more details from the error response
+          return response.text().then(errorText => {
+            console.error(`Value estimation API error: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Value estimation API response:', data);
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to get value estimation');
+        }
+        
+        // Update progress to completed
+        setProgress({
+          status: 'completed',
+          percentComplete: 100,
+          stage: 'Value estimation complete',
+          message: 'Your item value estimation is ready!'
+        });
+        
+        // Stop polling
+        if (statusCheckInterval) {
+          clearInterval(statusCheckInterval);
+          setStatusCheckInterval(null);
+        }
+        
+        setResult(data.results);
+        resolve(data.results);
+      })
+      .catch(err => {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to get value estimation';
+        setError(errorMessage);
+        
+        // Update progress to error state
+        setProgress({
+          status: 'error',
+          percentComplete: progress.percentComplete,
+          stage: 'Error in value estimation',
+          message: errorMessage
+        });
+        
+        // Stop polling on error
+        if (statusCheckInterval) {
+          clearInterval(statusCheckInterval);
+          setStatusCheckInterval(null);
+        }
+        
+        resolve(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-
-      // Log the response status
-      console.log(`Value estimation API response status: ${response.status}`);
-
-      if (!response.ok) {
-        // Try to get more details from the error response
-        const errorText = await response.text();
-        console.error(`Value estimation API error: ${errorText}`);
-        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('Value estimation API response:', data);
-      
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to get value estimation');
-      }
-
-      // Update progress to completed
-      setProgress({
-        status: 'completed',
-        percentComplete: 100,
-        stage: 'Value estimation complete',
-        message: 'Your item value estimation is ready!'
-      });
-      
-      // Stop polling
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-        setStatusCheckInterval(null);
-      }
-
-      setResult(data.results);
-      return data.results;
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get value estimation';
-      setError(errorMessage);
-      
-      // Update progress to error state
-      setProgress({
-        status: 'error',
-        percentComplete: progress.percentComplete,
-        stage: 'Error in value estimation',
-        message: errorMessage
-      });
-      
-      // Stop polling on error
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-        setStatusCheckInterval(null);
-      }
-      
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [apiUrl, progress.percentComplete, statusCheckInterval, checkValueEstimationStatus]);
+    });
+  }, [apiUrl, progress.percentComplete, statusCheckInterval]);
 
   // Assign the getValueEstimation function to the reference
-  getValueEstimationRef = getValueEstimation;
+  getValueEstimationRef.current = getValueEstimation;
 
   return {
     getValueEstimation,

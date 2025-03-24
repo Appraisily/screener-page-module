@@ -36,6 +36,30 @@
   for = "/assets/*"
     [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+    
+[[headers]]
+  for = "/widget.js"
+    [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/javascript"
+
+[[headers]]
+  for = "/widget.css"
+    [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "text/css"
+    
+[[headers]]
+  for = "/tangerine-churros-e587f4.netlify.app/widget.js"
+    [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/javascript"
+
+[[redirects]]
+  from = "/tangerine-churros-e587f4.netlify.app/*"
+  to = "/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
