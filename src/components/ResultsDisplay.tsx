@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, ArrowRight, DollarSign, AlertCircle, TrendingUp, BarChart3, Clock } from 'lucide-react';
+import { Mail, ArrowRight, DollarSign, AlertCircle, TrendingUp, BarChart3, Clock, Info } from 'lucide-react';
 import VisualSearchResults from './VisualSearchResults';
 import EmailCollector from './EmailCollector';
 import AuctionResults from './AuctionResults';
@@ -43,6 +43,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   hasEmailBeenSubmitted = false,
   valueEstimation = null
 }) => {
+  const [showRawData, setShowRawData] = useState(false);
+  
+  // For debugging purposes - check for additional data we might not be displaying
+  const hasAdditionalData = searchResults && 
+    (searchResults._rawData || 
+     searchResults.additionalDetails || 
+     searchResults.marketData || 
+     searchResults.similarItems ||
+     searchResults.auctionData);
+  
   return (
     <div className="space-y-12">
       {itemType && (
@@ -53,8 +63,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
       
-      {/* Value Estimation Section */}
-      {valueEstimation && (
+      {/* Value Estimation Section - Show either results or progress */}
+      {valueEstimation ? (
+        // Show actual value estimation results if we have them
         <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100 mb-12">
           <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
             <div className="flex items-center gap-3">
@@ -85,7 +96,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <p className="text-gray-700">{valueEstimation.explanation}</p>
             </div>
             
-            {valueEstimation && valueEstimation.auctionResults && valueEstimation.auctionResults.length > 0 && (
+            {valueEstimation.auctionResults && valueEstimation.auctionResults.length > 0 && (
               <div className="mb-8">
                 <AuctionResults 
                   results={valueEstimation.auctionResults}
@@ -147,7 +158,29 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             )}
           </div>
         </div>
-      )}
+      ) : isAnalyzing ? (
+        // Show progress state when analyzing but no value estimation yet
+        <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100 mb-12">
+          <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
+            <div className="flex items-center gap-3">
+              <DollarSign className="w-6 h-6 text-blue-500" />
+              <h2 className="text-xl font-semibold text-gray-900">Value Estimation</h2>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex items-center gap-3 px-6 py-6 bg-blue-50/50 rounded-lg border border-blue-100 mb-6 justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <span className="text-blue-700 font-medium">
+                Analyzing your item for value estimation...
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 text-center">
+              We'll provide a detailed estimate of your item's value once analysis is complete.
+            </p>
+          </div>
+        </div>
+      ) : null}
     
       <div className="overflow-x-hidden">
         {searchResults && (
@@ -159,6 +192,45 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           />
         )}
       </div>
+      
+      {/* Debug section to show raw data - only visible in development or with showRawData */}
+      {hasAdditionalData && (import.meta.env.DEV || showRawData) && (
+        <div className="mt-8 border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+              <Info className="w-5 h-5 text-blue-500" />
+              Additional Data Fields Available
+            </h3>
+            <button 
+              onClick={() => setShowRawData(!showRawData)}
+              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded"
+            >
+              {showRawData ? 'Hide Details' : 'Show Details'}
+            </button>
+          </div>
+          
+          {showRawData && searchResults && (
+            <div className="border border-gray-200 rounded bg-white p-4 overflow-auto max-h-96">
+              <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                {JSON.stringify(searchResults, null, 2)}
+              </pre>
+            </div>
+          )}
+          
+          {!showRawData && (
+            <div className="text-sm text-gray-600">
+              <p>The analysis contains additional data fields not shown in the UI. Click "Show Details" to view all data.</p>
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                {searchResults?.additionalDetails && <li>Additional details</li>}
+                {searchResults?.marketData && <li>Market data</li>}
+                {searchResults?.similarItems && <li>Similar items</li>}
+                {searchResults?.auctionData && <li>Auction data</li>}
+                {searchResults?._rawData && <li>Raw analysis data</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

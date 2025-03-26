@@ -142,8 +142,11 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   // Combine upload and analysis into a single flow
   const handleUpload = useCallback(async (file: File) => {
     try {
+      // Upload the image
       const uploadedSessionId = await uploadImageBase(file);
       if (uploadedSessionId) {
+        // Start the analysis process - value estimation will be triggered 
+        // by the progress hooks from useProgressiveResults
         await startFullAnalysis(uploadedSessionId);
       }
     } catch (err) {

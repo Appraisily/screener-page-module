@@ -267,7 +267,29 @@ export default function ServicePanels({
                   <AuctionResults results={valueResult.auctionResults} />
                 )}
               </div>
+            ) : isCalculatingValue ? (
+              // Show a loading message while value estimation is in progress
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-6 py-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="text-blue-700 font-medium">
+                    {loadingMessages[loadingMessageIndex]}
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${Math.min(20 * loadingMessageIndex, 95)}%` }}
+                    transition={{ duration: 0.5 }}
+                    className="h-full bg-gradient-to-r from-blue-500 to-[#007bff] rounded-full"
+                  />
+                </div>
+                <p className="text-sm text-gray-500 italic">
+                  We're analyzing market trends and comparable sales data to estimate your item's value...
+                </p>
+              </div>
             ) : (
+              // "Get Value Estimate" button - only show if value estimation hasn't been auto-started
               <div className="space-y-4">
                 <button
                   onClick={handleGetValueEstimation}
@@ -276,17 +298,8 @@ export default function ServicePanels({
                            rounded-lg hover:bg-[#007bff]/90 transition-colors duration-200
                            disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCalculatingValue ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      {loadingMessages[loadingMessageIndex]}
-                    </>
-                  ) : (
-                    <>
-                      <DollarSign className="w-5 h-5" />
-                      Get Value Estimate
-                    </>
-                  )}
+                  <DollarSign className="w-5 h-5" />
+                  Get Value Estimate
                 </button>
                 {valueError && (
                   <div className="p-3 bg-red-50 rounded-lg border border-red-100">

@@ -38,6 +38,9 @@ export function useFullAnalysis(apiUrl: string, callbacks: AnalysisCallbacks) {
       
       console.log('Full analysis API returned complete data:', data);
       
+      // Store the complete raw data for debugging and full access
+      const rawResults = data.results;
+      
       // Perform deep validation and defensive initialization of the data to prevent runtime errors
       // Ensure all required nested properties exist before usage
       const safeResults = {
@@ -94,13 +97,32 @@ export function useFullAnalysis(apiUrl: string, callbacks: AnalysisCallbacks) {
         }
       };
       
-      // Ensure we're capturing all the data from the response
+      // Create a complete copy of all fields from the backend response
+      // This ensures we don't lose any data the backend sends
       const completeResults = {
+        // Start with our safe results with defaults
         ...safeResults,
-        // Include any other fields that might be present
+        
+        // Include ALL fields from the original response
+        // This picks up any fields we might not have explicitly defined in our types
+        ...(rawResults || {}),
+        
+        // Previously specified fields
         ...(data.results?.visualAnalysis && { visualAnalysis: data.results.visualAnalysis }),
         ...(data.results?.originAnalysis && { originAnalysis: data.results.originAnalysis }),
-        timestamp: data.timestamp || Date.now()
+        
+        // Include any nested data structures we might want to access directly
+        ...(data.results?.additionalDetails && { additionalDetails: data.results.additionalDetails }),
+        ...(data.results?.marketData && { marketData: data.results.marketData }),
+        ...(data.results?.similarItems && { similarItems: data.results.similarItems }),
+        ...(data.results?.auctionData && { auctionData: data.results.auctionData }),
+        
+        // Maintain the raw data for debugging or access to any field
+        _rawData: rawResults,
+        
+        // Metadata
+        timestamp: data.timestamp || Date.now(),
+        sessionId: data.sessionId || null
       };
 
       onComplete?.(completeResults);

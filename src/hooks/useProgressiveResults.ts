@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { SearchResults } from '../types';
 
-// Polling intervals in milliseconds
-const INITIAL_POLL_INTERVAL = 1000; // 1 second
-const MAX_POLL_INTERVAL = 5000;     // 5 seconds
-const POLL_INTERVAL_STEP = 500;     // Increase by 0.5 seconds each time
+// Polling intervals in milliseconds - make more responsive
+const INITIAL_POLL_INTERVAL = 500;  // 0.5 seconds to start - faster initial feedback
+const MAX_POLL_INTERVAL = 2000;     // 2 seconds max - keep progress moving
+const POLL_INTERVAL_STEP = 250;     // Smaller steps for smoother progression
 
-// Maximum number of polling attempts
-const MAX_POLL_ATTEMPTS = 30;       // 30 attempts maximum
+// Maximum number of polling attempts - reduced for faster completion
+const MAX_POLL_ATTEMPTS = 15;       // 15 attempts maximum (analysis takes ~40 seconds)
 
 interface UseProgressiveResultsProps {
   apiUrl: string;
@@ -206,38 +206,42 @@ export function useProgressiveResults({
   // Simulated progress update for demo purposes
   // In a real implementation, the progress would come from the backend
   const simulateProgressUpdate = useCallback((count: number) => {
+    // Speed up the simulation - start with progress right away
+    // Each step will progress faster and appear more responsive
     const totalSteps = 4; // visual, details, origin, market
     const stepsPerPhase = [
-      { step: 'visual', startAt: 0, completeAt: 7 },
-      { step: 'details', startAt: 5, completeAt: 15 },
-      { step: 'origin', startAt: 12, completeAt: 22 },
-      { step: 'market', startAt: 20, completeAt: 28 }
+      { step: 'visual', startAt: 0, completeAt: 5 },  // Completes faster (5 polls)
+      { step: 'details', startAt: 2, completeAt: 8 }, // Starts earlier and completes faster
+      { step: 'origin', startAt: 4, completeAt: 10 }, // Starts earlier and completes faster
+      { step: 'market', startAt: 6, completeAt: 12 }  // Starts earlier and completes faster
     ];
     
     stepsPerPhase.forEach(({ step, startAt, completeAt }) => {
-      if (count >= startAt && count <= completeAt) {
-        // Calculate progress percentage
-        const stepDuration = completeAt - startAt;
-        const stepProgress = count - startAt;
-        const percent = Math.min(100, Math.round((stepProgress / stepDuration) * 100));
-        
-        // Update step progress
-        onStepProgress(step, percent);
-        
-        // Mark as completed when we reach the complete count
-        if (count === completeAt) {
+      if (count >= startAt) {
+        if (count >= completeAt) {
+          // If we've passed the completion point, mark as 100%
+          onStepProgress(step, 100);
           onStepComplete(step);
+        } else {
+          // Calculate progress percentage with a minimum starting value
+          // This ensures steps show progress immediately when they start
+          const stepDuration = completeAt - startAt;
+          const stepProgress = count - startAt;
+          
+          // Start at 10% minimum and progress faster with non-linear curve
+          // This creates a more visually satisfying progression
+          const basePercent = 10; // Minimum starting percentage
+          const calculatedPercent = Math.round((stepProgress / stepDuration) * (100 - basePercent));
+          const percent = Math.min(99, basePercent + calculatedPercent); // Cap at 99% until complete
+          
+          // Update step progress
+          onStepProgress(step, percent);
         }
       }
     });
     
-    // Simulate an error for demo purposes (uncommment to test)
-    // if (count === 9) {
-    //   onStepError('details');
-    // }
-    
-    // Simulate completion
-    if (count >= 28) {
+    // Simulate completion after all steps are done (poll count 12)
+    if (count >= 12) {
       // This would normally be filled by the backend
       const demoResults: SearchResults = {
         metadata: {
@@ -268,6 +272,7 @@ export function useProgressiveResults({
           originAnalysisTimestamp: Date.now()
         },
         detailedAnalysis: {
+          concise_description: "Contemporary Abstract Oil Painting", // Add this field to prevent errors
           maker_analysis: {
             creator_name: 'Unknown Contemporary Artist',
             reasoning: 'The style and technique suggest a contemporary artist from the late 20th or early 21st century.'

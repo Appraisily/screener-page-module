@@ -16,7 +16,8 @@ function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
-      <Route path="/analyze/:sessionId" element={<AnalyzePage />} />
+      {/* Keep the analyze route for compatibility with existing links */}
+      <Route path="/analyze/:sessionId" element={<HomePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
