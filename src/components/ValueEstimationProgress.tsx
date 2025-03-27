@@ -52,7 +52,7 @@ const ValueEstimationProgress: React.FC<ValueEstimationProgressProps> = ({
             )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Value Estimation</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Appraisal Insights</h3>
             <p className="text-sm text-gray-600">{stage}</p>
           </div>
         </div>
@@ -85,11 +85,11 @@ const ValueEstimationProgress: React.FC<ValueEstimationProgressProps> = ({
             <div className="flex items-center text-sm text-gray-500">
               <div className="flex items-center gap-1.5 mr-4">
                 <Search className="w-4 h-4" />
-                <span>Finding comparable items</span>
+                <span>Searching auction databases</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <BarChart className="w-4 h-4" />
-                <span>Analyzing market data</span>
+                <span>Compiling market insights</span>
               </div>
             </div>
             
@@ -122,7 +122,7 @@ const ValueEstimationProgress: React.FC<ValueEstimationProgressProps> = ({
               onClick={onCancel}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
-              Continue without waiting
+              Continue without auction data
             </button>
           </div>
         )}

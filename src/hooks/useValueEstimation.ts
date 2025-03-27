@@ -262,20 +262,20 @@ export function useValueEstimation(apiUrl: string) {
                 let message = prev.message;
                 
                 if (newPercent < 20) {
-                  stage = 'Finding similar items';
-                  message = 'Searching auction databases for similar items...';
+                  stage = 'Finding similar auction results';
+                  message = 'Searching auction databases for comparable items...';
                 } else if (newPercent < 40) {
                   stage = 'Analyzing market trends';
-                  message = 'Analyzing recent market trends for this type of item...';
+                  message = 'Processing recent auction data trends for your item...';
                 } else if (newPercent < 60) {
-                  stage = 'Evaluating condition factors';
-                  message = 'Evaluating condition and quality factors...';
+                  stage = 'Evaluating auction results';
+                  message = 'Evaluating most relevant auction comparables...';
                 } else if (newPercent < 80) {
-                  stage = 'Calculating value ranges';
-                  message = 'Calculating probable value ranges based on data...';
+                  stage = 'Creating appraisal insights';
+                  message = 'Preparing detailed auction insights and analysis...';
                 } else {
-                  stage = 'Finalizing appraisal';
-                  message = 'Finalizing value estimation and preparing report...';
+                  stage = 'Finalizing appraisal insights';
+                  message = 'Generating comprehensive appraisal insights report...';
                 }
                 
                 return {

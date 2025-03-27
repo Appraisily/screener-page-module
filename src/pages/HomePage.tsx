@@ -88,7 +88,9 @@ function HomePage({ apiUrl }: HomePageProps) {
 
   // State to manage auto-start of value estimation
   const [valueEstimationStarted, setValueEstimationStarted] = useState(false);
+  const [valueEstimationComplete, setValueEstimationComplete] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [showValueLoader, setShowValueLoader] = useState(false);
 
   // Progressive results with error handling
   const { partialResults } = useProgressiveResults({
@@ -114,9 +116,17 @@ function HomePage({ apiUrl }: HomePageProps) {
           console.log(`Auto-starting value estimation after ${stepId} analysis completion`);
           setValueEstimationStarted(true);
           setShowValueEstimationProgress(true);
-          getValueEstimation(sessionId).catch(err => {
-            console.error('Value estimation failed:', err);
-          });
+          setShowValueLoader(true);
+          getValueEstimation(sessionId)
+            .then(result => {
+              if (result) {
+                setValueEstimationComplete(true);
+                setShowValueLoader(false);
+              }
+            })
+            .catch(err => {
+              console.error('Value estimation failed:', err);
+            });
         }
       }
     },
@@ -145,7 +155,14 @@ function HomePage({ apiUrl }: HomePageProps) {
           console.log('Auto-starting value estimation after full analysis completion');
           setValueEstimationStarted(true);
           setShowValueEstimationProgress(true);
+          setShowValueLoader(true);
           getValueEstimation(sessionId)
+            .then(result => {
+              if (result) {
+                setValueEstimationComplete(true);
+                setShowValueLoader(false);
+              }
+            })
             .catch(err => console.error('Value estimation failed:', err));
         }
       } catch (error) {
@@ -402,23 +419,37 @@ function HomePage({ apiUrl }: HomePageProps) {
               </div>
             )}
 
-            {/* Show progressive results as they become available */}
-            {(isAnalyzing || useFallbackResults) && (
+            {/* Show progressive results ONLY during analysis */}
+            {isAnalyzing && !useFallbackResults && (
               <ProgressiveResults
-                partialResults={useFallbackResults ? finalResults : partialResults}
+                partialResults={partialResults}
                 analysisSteps={analysisSteps}
                 sessionId={sessionId}
                 isAnalyzing={isAnalyzing}
               />
             )}
 
-            {/* Analysis Results - Only shown when we have results */}
-            {finalResults && (customerImage || gcsImageUrl) && !isAnalyzing && (
-              <DetailedAnalysisReport
-                sessionId={sessionId || null}
-                imageUrl={customerImage || gcsImageUrl || ''}
-                data={finalResults?.detailedAnalysis || null}
-              />
+            {/* Analysis Results - Only shown when we have final results or using fallback */}
+            {((finalResults && (customerImage || gcsImageUrl) && !isAnalyzing) || useFallbackResults) && (
+              <>
+                {showValueLoader && !valueEstimationComplete && (
+                  <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-lg font-semibold text-gray-700">Fetching Auction Data and Appraisal Insights...</p>
+                    </div>
+                    <p className="text-center text-gray-500 mt-3">
+                      We're analyzing auction market data to provide accurate insights about your item's value.
+                    </p>
+                  </div>
+                )}
+                
+                <DetailedAnalysisReport
+                  sessionId={sessionId || null}
+                  imageUrl={customerImage || gcsImageUrl || ''}
+                  data={(useFallbackResults ? finalResults : finalResults)?.detailedAnalysis || null}
+                />
+              </>
             )}
 
             {/* Recent Examples - Only show if no analysis is in progress */}
