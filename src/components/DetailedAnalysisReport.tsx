@@ -1,6 +1,10 @@
-import React from 'react';
-import { DollarSign, Search, MapPin, User, Clock, Building2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { DollarSign, Search, MapPin, User, Clock, Building2, BarChart3 } from 'lucide-react';
 import { useValueEstimation } from '../hooks/useValueEstimation';
+import { useAuctionData } from '../hooks/useAuctionData';
+import AuctionResults from './AuctionResults';
+import AuctionResultsList from './AuctionResultsList';
+import AuctionDataPreview from './AuctionDataPreview';
 
 interface AnalysisData {
   concise_description: string;
@@ -184,7 +188,7 @@ const DetailedAnalysisReport: React.FC<DetailedAnalysisReportProps> = ({
         )}
 
         {valueResult && (
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-6">
             <div className="bg-blue-50 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Value Estimation</h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -205,6 +209,47 @@ const DetailedAnalysisReport: React.FC<DetailedAnalysisReportProps> = ({
                 <p className="text-gray-700">{valueResult.explanation}</p>
               </div>
             </div>
+            
+            {/* Auction market data visualization */}
+            {valueResult.auctionResults && valueResult.auctionResults.length > 0 && (
+              <AuctionResults 
+                results={valueResult.auctionResults.map(result => ({
+                  title: result.title,
+                  price: result.price,
+                  currency: result.currency,
+                  house: result.house,
+                  date: result.date,
+                  description: result.description
+                }))}
+                minValue={valueResult.minValue}
+                maxValue={valueResult.maxValue}
+                mostLikelyValue={valueResult.mostLikelyValue}
+              />
+            )}
+            
+            {/* Auction results list */}
+            {valueResult.auctionResults && valueResult.auctionResults.length > 0 && (
+              <AuctionDataPreview
+                results={valueResult.auctionResults.map(result => ({
+                  title: result.title,
+                  price: {
+                    amount: typeof result.price === 'number' ? result.price : result.price.amount,
+                    currency: typeof result.price === 'number' ? result.currency : result.price.currency,
+                    symbol: typeof result.price === 'number' ? '$' : result.price.symbol
+                  },
+                  auctionHouse: result.house,
+                  date: result.date,
+                  lotNumber: '',
+                  saleType: 'Auction'
+                }))}
+                limitPreview={2}
+                title="Comparable Items Sold at Auction"
+                onUpgradeClick={() => {
+                  // Here you'd handle the premium upgrade flow
+                  window.open('https://www.appraisily.com/premium', '_blank');
+                }}
+              />
+            )}
           </div>
         )}
       </div>

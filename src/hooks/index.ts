@@ -18,3 +18,4 @@ export * from './useErrorRecovery';
 // These hooks have complex dependencies, export them last
 export * from './useImageAnalysis';
 export * from './useValueEstimation';
+export * from './useAuctionData';
