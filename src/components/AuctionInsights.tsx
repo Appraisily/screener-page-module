@@ -68,10 +68,10 @@ const AuctionInsights: React.FC<AuctionInsightsProps> = ({
   const secondHalf = chronologicalResults.slice(Math.ceil(chronologicalResults.length / 2));
   const firstHalfAvg = firstHalf.reduce((sum, r) => sum + r.price.amount, 0) / firstHalf.length;
   const secondHalfAvg = secondHalf.reduce((sum, r) => sum + r.price.amount, 0) / secondHalf.length;
-  const marketTrend = secondHalfAvg > firstHalfAvg * 1.1 
+  const calculatedMarketTrend = secondHalfAvg > firstHalfAvg * 1.1 
     ? 'rising' 
     : secondHalfAvg < firstHalfAvg * 0.9 
-      ? 'falling' 
+      ? 'declining' 
       : 'stable';
 
   return (
@@ -158,13 +158,13 @@ const AuctionInsights: React.FC<AuctionInsightsProps> = ({
                   <h3 className="font-medium text-gray-900">Market Summary</h3>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                  marketTrend === 'rising' 
+                  calculatedMarketTrend === 'rising' 
                     ? 'bg-green-100 text-green-800' 
-                    : marketTrend === 'declining' 
+                    : calculatedMarketTrend === 'declining' 
                       ? 'bg-red-100 text-red-800' 
                       : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {marketTrend === 'rising' ? 'Rising Market' : marketTrend === 'declining' ? 'Declining Market' : 'Stable Market'}
+                  {calculatedMarketTrend === 'rising' ? 'Rising Market' : calculatedMarketTrend === 'declining' ? 'Declining Market' : 'Stable Market'}
                 </span>
               </div>
               
