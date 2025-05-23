@@ -25,9 +25,11 @@
     "tailwind-merge": "^2.2.1",
     "uuid": "^11.1.0"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.41.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
-    "@rollup/rollup-win32-x64-msvc": "^4.41.0",
     "@types/node": "^20.11.25",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",

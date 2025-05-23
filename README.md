@@ -427,4 +427,15 @@ The minimal backend (`backend/index.js`) handles CORS for:
 - **fallbackService**: Graceful degradation when services are unavailable
 - **sessionRecovery**: Restore interrupted analysis sessions
 
+## Development Environment Notes
+
+### Platform-Specific Build Dependencies
+
+This project uses Vite, which relies on Rollup for bundling. Rollup has platform-specific optional dependencies to optimize performance.
+
+-   **For Windows development:** The `@rollup/rollup-win32-x64-msvc` package is used. It is listed in `optionalDependencies` in `package.json`. If you encounter build issues on Windows related to Rollup, ensure this optional dependency is correctly installed. You might need to remove `node_modules` and `package-lock.json`, then run `npm install`.
+-   **For Netlify (Linux) builds:** The Netlify build environment will automatically skip the Windows-specific optional dependency. No special configuration is needed for this.
+
+This setup ensures that local development on Windows works smoothly while deployments on Linux-based environments like Netlify also function correctly without installation errors.
+
 This documentation covers all backend endpoints, data structures, and API integrations found in the screener-page-module codebase.
