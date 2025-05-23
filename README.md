@@ -1,122 +1,430 @@
-# Appraisily Art Screener
+# Appraisily Art Screener - Backend Documentation
 
-This repository contains the code for Appraisily's Art Screener application, an AI-powered tool for art analysis and appraisal. The platform combines computer vision and generative AI to provide instant artwork evaluation.
+This repository contains the Appraisily Art Screener application, an AI-powered tool for art analysis and appraisal. This documentation focuses on the backend API endpoints, data structures, and integrations.
 
-## Features
+## Backend API Endpoints
 
-- 🎨 Instant artwork analysis using AI vision models
-- 🔍 Visual similarity search across art databases
-- 🤖 Advanced AI-powered artwork classification and attribution
-- 📊 Detailed visual analysis reports with style/period identification
-- 💰 Value estimation based on auction data and market trends
-- 💻 Responsive, modern UI optimized for all devices
-- 📱 Progressive feature unlocking based on analysis stage
+### Image Management
+- **POST** `/upload-temp`
+  - **Purpose**: Upload temporary images for analysis
+  - **Input**: FormData with `image` file (max 5MB, image/* types only)
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "message": string,
+      "sessionId": string,
+      "imageUrl": string
+    }
+    ```
 
-## Tech Stack
+### Analysis Endpoints
+- **POST** `/full-analysis`
+  - **Purpose**: Start complete artwork analysis
+  - **Input**: 
+    ```json
+    {
+      "sessionId": string
+    }
+    ```
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "message": string,
+      "results": SearchResults,
+      "timestamp": number,
+      "sessionId": string
+    }
+    ```
 
-- **Frontend**: React 18.3, TypeScript 5.5, Vite 5.4, Tailwind CSS 3.4
-- **UI Components**: Lucide React (icons), React Router DOM 6.22
-- **API**: Axios for HTTP requests with proper error handling
-- **State Management**: React hooks (useState, useEffect, useContext)
-- **Backend Services**: Node.js on Google Cloud Run (separate repository)
+- **POST** `/find-value`
+  - **Purpose**: Get value estimation for artwork
+  - **Input**: 
+    ```json
+    {
+      "sessionId": string
+    }
+    ```
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "message": string,
+      "results": ValueEstimationResult
+    }
+    ```
 
-## Project Structure
+- **POST** `/find-value/status`
+  - **Purpose**: Check value estimation progress
+  - **Input**: 
+    ```json
+    {
+      "sessionId": string
+    }
+    ```
+  - **Output**: 
+    ```json
+    {
+      "status": "idle" | "queued" | "processing" | "completed" | "error",
+      "percentComplete": number,
+      "stage": string,
+      "message": string,
+      "estimatedTimeRemaining": number
+    }
+    ```
 
-```
-/
-├── frontend/           # Standalone frontend module
-│   ├── src/            # Source code
-│   └── ...             # Frontend-specific config
-├── src/                # Main application source
-│   ├── components/     # React components organized by feature
-│   ├── hooks/          # Custom React hooks including API handlers
-│   │   └── api/        # API communication hooks
-│   ├── pages/          # Page components
-│   ├── templates/      # HTML templates for reports
-│   ├── types/          # TypeScript type definitions
-│   └── utils/          # Utility functions
-├── public/             # Static assets
-└── ...                 # Configuration files
-```
+### Session Management
+- **GET** `/session/{sessionId}/status`
+  - **Purpose**: Get session analysis status
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "data": {
+        "status": string,
+        "results": SearchResults,
+        "visual_progress": ProgressData,
+        "details_progress": ProgressData,
+        "origin_progress": ProgressData,
+        "market_progress": ProgressData
+      }
+    }
+    ```
 
-## Getting Started
+- **GET** `/session/{sessionId}`
+  - **Purpose**: Get complete session data
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "session": {
+        "metadata": object,
+        "analysis": object,
+        "origin": object,
+        "detailed": object
+      }
+    }
+    ```
 
-### Prerequisites
+### Auction Data
+- **POST** `/auction-results`
+  - **Purpose**: Get auction results by session ID or keyword
+  - **Input**: 
+    ```json
+    {
+      "sessionId": string
+    }
+    ```
+    OR
+    ```json
+    {
+      "keyword": string,
+      "minPrice": number,
+      "limit": number
+    }
+    ```
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "results": {
+        "keyword": string,
+        "totalResults": number,
+        "minPrice": number,
+        "auctionResults": AuctionResult[]
+      },
+      "keywords": string[]
+    }
+    ```
 
-- Node.js >= 18
-- npm >= 9
+### Communication
+- **POST** `/submit-email`
+  - **Purpose**: Submit user email for results delivery
+  - **Input**: 
+    ```json
+    {
+      "email": string,
+      "sessionId": string
+    }
+    ```
+  - **Output**: 
+    ```json
+    {
+      "success": boolean,
+      "message": string
+    }
+    ```
 
-### Installation
+## Data Structures & Types
 
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Build for Netlify (skips TypeScript errors)
-npm run build:netlify
-
-# Run ESLint
-npm run lint
-
-# Preview production build
-npm run preview
-```
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-VITE_API_URL=https://appraisals-web-services-backend-856401495068.us-central1.run.app
-```
-
-For local development, you can point to a local backend:
-
-```env
-VITE_API_URL=http://localhost:8080
-```
-
-## Development Guidelines
-
-### Code Style
-
-- Use TypeScript for all components with proper type definitions
-- Follow React hooks best practices and rules of hooks
-- Implement proper error handling with try/catch blocks
-- Use Tailwind CSS for styling with clsx/classnames for conditionals
-- Keep components focused and reusable
-
-### API Response Format
-
-All API responses follow this structure:
+### Core Analysis Types
 ```typescript
-interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  error?: string; // Only present in error responses
-  data?: T;       // Typed data payload
+interface DetailedAnalysis {
+  concise_description?: string;
+  maker_analysis: {
+    creator_name: string;
+    reasoning: string;
+  };
+  signature_check: {
+    signature_text: string;
+    interpretation: string;
+  };
+  origin_analysis: {
+    likely_origin: string;
+    reasoning: string;
+  };
+  marks_recognition: {
+    marks_identified: string;
+    interpretation: string;
+  };
+  age_analysis: {
+    estimated_date_range: string;
+    reasoning: string;
+  };
+  visual_search: {
+    similar_artworks: string;
+    notes: string;
+  };
+}
+
+interface SearchResults {
+  metadata: {
+    originalName: string;
+    timestamp: number;
+    analyzed: boolean;
+    mimeType: string;
+    size: number;
+    fileName: string;
+    imageUrl: string;
+    analysisTimestamp: number;
+    analysisResults: {
+      labels: string[];
+      webEntities: number;
+      matchCounts: {
+        exact: number;
+        partial: number;
+        similar: number;
+      };
+      pagesWithMatches: number;
+      webLabels: number;
+      openaiAnalysis: {
+        category: ItemType;
+        description: string;
+      };
+    };
+    originAnalyzed: boolean;
+    originAnalysisTimestamp: number;
+  };
+  detailedAnalysis: DetailedAnalysis;
+}
+
+interface AnalysisStep {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  percentComplete?: number;
 }
 ```
 
+### Value Estimation Types
+```typescript
+interface AuctionResult {
+  title: string;
+  price: {
+    amount: number;
+    currency: string;
+    symbol: string;
+  } | number; // Legacy format support
+  currency?: string; // Legacy format support
+  auctionHouse: string;
+  house?: string; // Legacy format support
+  date: string;
+  lotNumber?: string;
+  saleType?: string;
+  description?: string;
+}
+
+interface ValueEstimationResult {
+  timestamp: number;
+  query: string;
+  success: boolean;
+  minValue: number;
+  maxValue: number;
+  mostLikelyValue: number;
+  explanation: string;
+  auctionResults: AuctionResult[];
+  auctionResultsCount: number;
+}
+
+interface ValueEstimationProgress {
+  status: 'idle' | 'queued' | 'processing' | 'completed' | 'error';
+  percentComplete: number;
+  stage: string;
+  message: string;
+  estimatedTimeRemaining?: number;
+}
+```
+
+### Generic API Response
+```typescript
+interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: T;
+}
+```
+
+## Custom Hooks & Classes
+
+### API Integration Hooks
+- **useImageUpload**: Handles image upload to `/upload-temp` endpoint
+  - Methods: `uploadImage(file: File)`
+  - State: `isUploading`, `error`, `customerImage`, `sessionId`
+
+- **useEmailSubmission**: Manages email submission to `/submit-email` endpoint
+  - Methods: `submitEmail(email: string, sessionId: string)`
+  - State: `isSubmitting`, `error`, `userEmail`
+
+- **useFullAnalysis**: Controls complete analysis workflow via `/full-analysis` endpoint
+  - Methods: `startFullAnalysis(sessionId: string)`
+  - Callbacks: `onStart`, `onComplete`, `onError`
+
+- **useValueEstimation**: Manages value estimation via `/find-value` endpoint
+  - Methods: `getValueEstimation(sessionId: string)`, `checkValueEstimationStatus(sessionId: string)`
+  - State: `isLoading`, `error`, `result`, `progress`
+
+- **useAuctionData**: Handles auction data from `/auction-results` endpoint
+  - Methods: `getAuctionResults(sessionId: string)`, `getKeywordResults(keyword: string, minPrice?: number, limit?: number)`
+  - State: `isLoading`, `error`, `results`, `keywords`
+
+### Analysis Management Hooks
+- **useImageAnalysis**: Master hook coordinating all analysis workflows
+  - Methods: `uploadImage`, `startFullAnalysis`, `submitEmail`, `analyzeOrigin`, `resetState`
+  - State: Comprehensive analysis state including steps, progress, results
+
+- **useProgressiveResults**: Manages real-time progress updates via `/session/{sessionId}/status`
+  - Progressive loading of analysis results
+  - Step-by-step progress tracking
+  - Polling mechanism for live updates
+
+- **useAnalysisState**: Centralized state management for analysis data
+  - Methods: `setState`, `resetState`
+  - State: Session management, results, progress tracking
+
+- **useAnalysisProgress**: Tracks analysis step progression
+  - Real-time step completion tracking
+  - Progress percentage calculation
+
+### Utility Services
+- **useErrorRecovery**: Error handling and retry mechanisms
+- **retryService**: Configurable retry logic for failed API calls
+- **sessionRecovery**: Session restoration and data recovery
+- **fallbackService**: Fallback mechanisms for API failures
+
+## Project File Structure
+
+```
+screener-page-module/
+├── backend/
+│   └── index.js                    # CORS configuration (minimal backend)
+├── src/
+│   ├── components/                 # React UI components
+│   ├── hooks/                      # Custom React hooks
+│   │   ├── api/                    # API integration hooks
+│   │   │   ├── useImageUpload.ts   # Image upload API
+│   │   │   ├── useEmailSubmission.ts # Email submission API
+│   │   │   ├── useOriginAnalysis.ts  # (Deprecated)
+│   │   │   └── useVisualSearch.ts    # (Deprecated)
+│   │   ├── utils/                  # Hook utilities
+│   │   ├── useImageAnalysis.ts     # Master analysis controller
+│   │   ├── useFullAnalysis.ts      # Full analysis workflow
+│   │   ├── useValueEstimation.ts   # Value estimation system
+│   │   ├── useAuctionData.ts       # Auction data management
+│   │   ├── useProgressiveResults.ts # Progressive loading
+│   │   ├── useAnalysisState.ts     # State management
+│   │   ├── useAnalysisProgress.ts  # Progress tracking
+│   │   ├── useErrorRecovery.ts     # Error handling
+│   │   └── index.ts                # Hook exports
+│   ├── types/
+│   │   └── index.ts                # TypeScript type definitions
+│   ├── utils/                      # Utility functions
+│   │   ├── retryService.ts         # API retry logic
+│   │   ├── sessionRecovery.ts      # Session management
+│   │   ├── fallbackService.ts      # Fallback mechanisms
+│   │   └── validation.ts           # Input validation
+│   ├── pages/                      # Page components
+│   ├── templates/                  # HTML templates
+│   ├── images/                     # Static images
+│   ├── lib/                        # External libraries
+│   ├── App.tsx                     # Main application
+│   ├── main.tsx                    # Application entry point
+│   ├── index.css                   # Global styles
+│   └── index.ts                    # Main exports
+├── public/                         # Static assets
+├── frontend/                       # Standalone frontend module
+├── dist/                           # Build output
+├── node_modules/                   # Dependencies
+├── package.json                    # Dependencies and scripts
+├── vite.config.ts                  # Vite configuration
+├── tailwind.config.js              # Tailwind CSS configuration
+├── tsconfig.json                   # TypeScript configuration
+├── netlify.toml                    # Netlify deployment config
+└── README.md                       # This documentation
+```
+
+## Analysis Workflow
+
+### 1. Image Upload Flow
+1. User uploads image via `useImageUpload.uploadImage()`
+2. Image sent to `/upload-temp` endpoint
+3. Returns `sessionId` and `imageUrl`
+4. Triggers automatic analysis via `useImageAnalysis.handleUpload()`
+
+### 2. Analysis Process
+1. `useFullAnalysis.startFullAnalysis()` called with `sessionId`
+2. `/full-analysis` endpoint processes the image
+3. `useProgressiveResults` polls `/session/{sessionId}/status` for progress
+4. Four analysis steps tracked: Visual Search, Details Analysis, Origin Check, Market Research
+5. Results stored in `SearchResults` format
+
+### 3. Value Estimation
+1. `useValueEstimation.getValueEstimation()` called after analysis
+2. `/find-value` endpoint calculates value estimate
+3. `/find-value/status` polled for progress updates
+4. `useAuctionData` fetches comparable auction results via `/auction-results`
+5. Final `ValueEstimationResult` includes price ranges and auction data
+
+### 4. Email Submission
+1. User provides email via `useEmailSubmission.submitEmail()`
+2. `/submit-email` endpoint stores email with session
+3. Results delivered to user's email address
+
+## Environment Variables
+
+- `VITE_API_URL`: Backend API base URL (default: development endpoints)
+
 ## Deployment
 
-The frontend is automatically deployed to Netlify when changes are pushed to the main branch. The build process is configured in `netlify.toml` and `netlify-build.js`.
+- **Frontend**: Deployed to Netlify with automatic builds
+- **Backend**: External service (separate repository) on Google Cloud Run
+- **Configuration**: `netlify.toml` and `netlify-build.js` handle build process
 
-## Documentation
+## CORS Configuration
 
-- [CLAUDE.md](./CLAUDE.md) - Development guidelines for agentic coding assistants
-- [Frontend Module](./frontend/) - Standalone frontend module implementation
+The minimal backend (`backend/index.js`) handles CORS for:
+- Local development (`localhost:5173`)
+- Netlify deployments (`*.netlify.app`)
+- Custom domain (`screener.appraisily.com`)
+- Development environments (GitHub Codespaces, StackBlitz)
 
-## License
+## Error Handling
 
-This project is proprietary software. All rights reserved.
+- **useErrorRecovery**: Automatic retry mechanisms for failed requests
+- **retryService**: Configurable retry policies with exponential backoff
+- **fallbackService**: Graceful degradation when services are unavailable
+- **sessionRecovery**: Restore interrupted analysis sessions
 
-## Support
-
-For support, email support@appraisily.com
+This documentation covers all backend endpoints, data structures, and API integrations found in the screener-page-module codebase.

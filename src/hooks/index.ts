@@ -19,3 +19,6 @@ export * from './useErrorRecovery';
 export * from './useImageAnalysis';
 export * from './useValueEstimation';
 export * from './useAuctionData';
+
+// High-level orchestrator hook
+export * from './useComprehensiveAnalysis';

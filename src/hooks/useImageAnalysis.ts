@@ -46,6 +46,8 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
   const [shouldPollResults, setShouldPollResults] = useState(false);
   const [originResults, setOriginResults] = useState(null);
   const [isAnalyzingOrigin, setIsAnalyzingOrigin] = useState(false);
+  // Track origin analysis progress separately
+  const [originProgress, setOriginProgress] = useState<number>(0);
 
   const {
     state,
@@ -145,14 +147,20 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
       // Upload the image
       const uploadedSessionId = await uploadImageBase(file);
       if (uploadedSessionId) {
-        // Start the analysis process - value estimation will be triggered 
-        // by the progress hooks from useProgressiveResults
-        await startFullAnalysis(uploadedSessionId);
+        // Trigger full analysis and origin analysis in parallel
+        // We don't await here to ensure both run concurrently
+        startFullAnalysis(uploadedSessionId).catch(err => {
+          console.error('Full analysis failed:', err);
+        });
+
+        analyzeOrigin(uploadedSessionId).catch(err => {
+          console.error('Origin analysis failed:', err);
+        });
       }
     } catch (err) {
       console.error('Upload and analysis flow failed:', err);
     }
-  }, [uploadImageBase, startFullAnalysis]);
+  }, [uploadImageBase, startFullAnalysis, analyzeOrigin]);
 
   // Handle email submission
   const handleEmailSubmit = useCallback(async (email: string): Promise<boolean> => {
@@ -191,17 +199,16 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
       setSessionId(initialSessionId);
       setCustomerImage(gcsUrl);
 
-      startFullAnalysis(initialSessionId)
-        .catch(err => setState(prev => ({ 
-          ...prev, 
-          error: err instanceof Error ? err.message : 'Failed to initialize'
-        })))
-        .finally(() => setState(prev => ({ 
-          ...prev, 
-          isInitializing: false 
-        })));
+      // Run both analyses in parallel
+      Promise.allSettled([
+        startFullAnalysis(initialSessionId),
+        analyzeOrigin(initialSessionId)
+      ]).finally(() => setState(prev => ({ 
+        ...prev, 
+        isInitializing: false 
+      })));
     }
-  }, [initialSessionId, sessionId, setSessionId, setCustomerImage, startFullAnalysis, setState]);
+  }, [initialSessionId, sessionId, setSessionId, setCustomerImage, startFullAnalysis, analyzeOrigin, setState]);
 
   // Combine errors from different sources
   useEffect(() => {
@@ -211,44 +218,49 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     }
   }, [uploadError, analysisError, emailError, setState]);
 
-  // Placeholder for origin analysis
-  const analyzeOrigin = useCallback(async () => {
-    if (!sessionId) return;
-    
+  /**
+   * Run origin analysis against the backend. This is triggered automatically together with full analysis
+   * to ensure we maximise the information delivered to the customer.
+   */
+  const analyzeOrigin = useCallback(async (currentSessionId?: string) => {
+    const activeSessionId = currentSessionId || sessionId;
+    if (!activeSessionId) return;
+
     try {
+      console.log('[OriginAnalysis] Starting for session', activeSessionId);
       setIsAnalyzingOrigin(true);
-      
-      // This would be a real API call in the actual implementation
-      // const response = await fetch(`${effectiveApiUrl}/origin-analysis`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ sessionId })
-      // });
-      
-      // Simulated response
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setOriginResults({
-        originality: 'original',
-        confidence: 0.85,
-        style_analysis: 'Abstract expressionist with contemporary influence',
-        unique_characteristics: [
-          'Bold brushstrokes',
-          'Vibrant color palette',
-          'Textured canvas surface',
-          'Asymmetrical composition'
-        ],
-        comparison_notes: 'Shows similarities to mid-century abstract works but with a contemporary approach',
-        recommendation: 'This appears to be an original work worthy of professional appraisal'
+      updateStepProgress('origin', 'processing', 0);
+
+      const response = await fetch(`${effectiveApiUrl}/origin-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sessionId: activeSessionId })
       });
+
+      if (!response.ok) {
+        throw new Error(`Origin analysis failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Origin analysis failed');
+      }
+
+      console.log('[OriginAnalysis] Completed for session', activeSessionId, data.data);
+
+      setOriginResults(data.data.origin);
+      setOriginProgress(100);
+      updateStepProgress('origin', 'completed', 100);
     } catch (error) {
       console.error('Origin analysis error:', error);
+      updateStepProgress('origin', 'error', 0);
     } finally {
       setIsAnalyzingOrigin(false);
     }
-  }, [sessionId, effectiveApiUrl]);
+  }, [sessionId, effectiveApiUrl, updateStepProgress]);
 
   return {
     uploadImage: handleUpload,
@@ -266,6 +278,7 @@ export function useImageAnalysis(apiUrl?: string, initialSessionId?: string) {
     gcsImageUrl: state.gcsImageUrl,
     searchResults: state.searchResults,
     originResults,
+    originProgress,
     error: state.error,
     analysisSteps,
     hasEmailBeenSubmitted: state.hasEmailBeenSubmitted,
