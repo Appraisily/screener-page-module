@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from '../components/SimpleIcons';
 import Navbar from '../components/Navbar';
 import AnalysisProgress from '../components/AnalysisProgress';
 import EmailCollectionCard from '../components/EmailCollectionCard';

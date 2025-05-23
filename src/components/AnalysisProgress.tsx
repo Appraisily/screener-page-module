@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, MapPin, LineChart, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Sparkles, MapPin, LineChart, CheckCircle2, Loader2, AlertCircle } from './SimpleIcons';
 import type { AnalysisStep } from '../types';
 
 const STEP_ICONS = {

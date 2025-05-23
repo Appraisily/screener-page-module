@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from './SimpleIcons';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
