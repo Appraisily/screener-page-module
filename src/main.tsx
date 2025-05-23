@@ -6,7 +6,7 @@ import './index.css';
 
 // Immediately create placeholder globals for minified variables that may be referenced before initialization
 // Add extra variables that might be causing issues in lucide-react
-['h', 'L', 'pc', 'Kk', 'pu', 'gm', 'hm', '$v', 'Ki', 'll', 'cm', 'S', 'jj', 'sh', 'iu', 'fp', 'up', 'Lv', 'zi', 'el', 'op', 'j', 'Ee'].forEach(varName => {
+['h', 'L', 'pc', 'Kk', 'pu', 'gm', 'hm', '$v', 'Ki', 'll', 'cm', 'S', 'jj', 'sh', 'iu', 'fp', 'up', 'Lv', 'zi', 'el', 'op', 'j', 'Ee', '_'].forEach(varName => {
   if (!(varName in window)) {
     try {
       (window as any)[varName] = function() { return null; };
