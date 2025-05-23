@@ -18,7 +18,7 @@ window.addEventListener('error', (event) => {
     return true; // Handled
   }
   
-  // Also catch the "Cannot access 'h' before initialization" error
+  // Also catch the "Cannot access 'X' before initialization" style errors
   if (event.message && event.message.includes('Cannot access') && event.message.includes('before initialization')) {
     console.warn('Caught initialization error:', event.message);
     // Prevent error from propagating
@@ -38,7 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Add safety for any variable names that might be accessed before initialization
     // Minified variables like 'h' are common causes of initialization errors
-    ['h', 'pc', 'Kk', 'pu', 'gm', 'hm', '$v', 'Ki', 'll', 'cm', 'S'].forEach(varName => {
+    ['h', 'L', 'pc', 'Kk', 'pu', 'gm', 'hm', '$v', 'Ki', 'll', 'cm', 'S'].forEach(varName => {
       if (!(varName in window)) {
         (window as any)[varName] = {};
       }
