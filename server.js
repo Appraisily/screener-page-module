@@ -23,9 +23,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from dist directory
-app.use(express.static(path.join(__dirname, 'dist'), {
-  setHeaders: (res, filePath) => {
+// Configure cache and content headers for static files
+const staticOptions = {
+  setHeaders(res, filePath) {
     // Cache control for different file types
     if (filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
@@ -46,7 +46,10 @@ app.use(express.static(path.join(__dirname, 'dist'), {
       res.setHeader('Content-Type', 'text/css');
     }
   }
-});
+};
+
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, 'dist'), staticOptions));
 
 // Handle legacy Netlify redirect paths
 app.get('/tangerine-churros-e587f4.netlify.app/*', (req, res) => {
