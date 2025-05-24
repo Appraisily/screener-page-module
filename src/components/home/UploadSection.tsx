@@ -30,11 +30,9 @@ const UploadSection: React.FC<UploadSectionProps> = ({
   analysisSteps
 }) => {
   return (
-    <div className="relative">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#007bff,_transparent_70%)] opacity-[0.15]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_#007bff,_transparent_70%)] opacity-[0.15]"></div>
-      </div>
+    <div className="relative py-8">
+      {/* Subtle background overlay */}
+      <div className="absolute inset-0 bg-gradient-overlay opacity-30" />
       
       <div className="relative">
         <ImageUploader 
@@ -46,24 +44,23 @@ const UploadSection: React.FC<UploadSectionProps> = ({
         />
 
         {error && (
-          <div className="mx-auto max-w-2xl mt-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <p className="text-red-700">{error}</p>
+          <div className="mx-auto max-w-2xl mt-6 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0" />
+            <p className="text-error-700 text-sm">{error}</p>
           </div>
         )}
 
         {showBackupButton && sessionId && !isAnalyzing && (
-          <div className="text-center mt-8">
-            <div className="inline-flex flex-col items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
-              <p className="text-sm text-yellow-800">
-                If the analysis hasn't started automatically, you can start it manually:
+          <div className="text-center mt-6">
+            <div className="inline-flex flex-col items-center gap-4 p-6 bg-warning-50 rounded-xl border border-warning-200">
+              <p className="text-sm text-warning-800 font-medium">
+                Analysis hasn't started automatically? You can start it manually:
               </p>
               <button
                 onClick={onManualAnalysis}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#007bff] text-white rounded-lg
-                         hover:bg-[#007bff]/90 transition-colors duration-200"
+                className="btn-accent group"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 transition-transform group-hover:rotate-12" />
                 Start Analysis
               </button>
             </div>
@@ -71,7 +68,7 @@ const UploadSection: React.FC<UploadSectionProps> = ({
         )}
 
         {isAnalyzing && (
-          <div className="text-center py-8">
+          <div className="mt-8">
             <AnalysisProgress steps={analysisSteps} />
           </div>
         )}

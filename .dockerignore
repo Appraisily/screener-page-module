@@ -1,0 +1,39 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Netlify specific files (no longer needed)
+netlify.toml
+netlify-build.js
+
+# Development files
+.cursor
+*.log
+*.tmp
+.cache
+
+# Build artifacts (will be created during build)
+dist
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+.coverage
+.nyc_output
+junit.xml
+
+# Misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 

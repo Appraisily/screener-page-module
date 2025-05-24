@@ -301,7 +301,7 @@ function HomePage({ apiUrl }: HomePageProps) {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <AnalysisProgress steps={analysisSteps} overallProgress={overallProgress} />
       </div>
     );
@@ -313,7 +313,7 @@ function HomePage({ apiUrl }: HomePageProps) {
       {import.meta.env.DEV && (
         <DebugButton onDebug={handleDebug} />
       )}
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-16 overflow-x-hidden">
+      <div className="min-h-screen bg-gray-50 pt-16 overflow-x-hidden">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 sm:py-16">
           {/* Only show header if we don't have a session in progress */}
           {!sessionId && !customerImage && !isAnalyzing && (
@@ -322,19 +322,19 @@ function HomePage({ apiUrl }: HomePageProps) {
 
           {sessionId && (customerImage || gcsImageUrl) && (
             <header className="mx-auto max-w-3xl text-center mb-16">
-              <div className="flex flex-col items-center justify-center gap-2 mb-6">
-                <div className="w-24 h-24 mb-2">
+              <div className="flex flex-col items-center justify-center gap-4 mb-8">
+                <div className="w-20 h-20 mb-2">
                   <img 
                     src="https://ik.imagekit.io/appraisily/WebPage/logo_new.png?updatedAt=1731919266638" 
                     alt="Appraisily Logo" 
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
                   Analyzing Your Artwork
                 </h1>
-                <p className="text-2xl font-semibold mt-2 text-[rgb(0,123,255)]">
-                  AI-Powered Analysis in Progress
+                <p className="text-lg text-gray-600 font-medium">
+                  Professional analysis in progress
                 </p>
               </div>
             </header>
@@ -344,8 +344,8 @@ function HomePage({ apiUrl }: HomePageProps) {
             {/* Customer Image Display for recovered sessions */}
             {sessionId && (customerImage || gcsImageUrl) && (
               <div className="mx-auto max-w-2xl mb-8">
-                <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 space-y-4">
-                  <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                <div className="bg-white rounded-2xl p-6 shadow-elegant border border-gray-200 space-y-4">
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
                     <img
                       src={customerImage || gcsImageUrl}
                       alt="Uploaded artwork"
@@ -357,9 +357,9 @@ function HomePage({ apiUrl }: HomePageProps) {
                     />
                   </div>
                   {sessionId && (
-                    <div className="flex items-center justify-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                      <span className="text-sm font-medium text-gray-600">Analysis ID:</span>
-                      <code className="px-3 py-1 bg-white rounded text-sm font-mono text-blue-600 border border-blue-200">
+                    <div className="flex items-center justify-center gap-2 p-3 bg-gray-100 rounded-lg border border-gray-200">
+                      <span className="text-sm font-medium text-gray-700">Analysis ID:</span>
+                      <code className="px-3 py-1 bg-white rounded text-sm font-mono text-gray-900 border border-gray-300">
                         {sessionId}
                       </code>
                     </div>
@@ -370,9 +370,9 @@ function HomePage({ apiUrl }: HomePageProps) {
 
             {/* Error display */}
             {error && !recoveryError && (
-              <div className="mx-auto max-w-2xl mb-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <p className="text-red-700">{error}</p>
+              <div className="mx-auto max-w-2xl mb-8 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0" />
+                <p className="text-error-700 text-sm">{error}</p>
               </div>
             )}
 
@@ -433,13 +433,13 @@ function HomePage({ apiUrl }: HomePageProps) {
             {((finalResults && (customerImage || gcsImageUrl) && !isAnalyzing) || useFallbackResults) && (
               <>
                 {showValueLoader && !valueEstimationComplete && (
-                  <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+                  <div className="bg-white rounded-xl shadow-elegant border border-gray-200 p-8 mb-8">
                     <div className="flex items-center justify-center gap-4">
-                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-lg font-semibold text-gray-700">Fetching Auction Data and Appraisal Insights...</p>
+                      <div className="w-8 h-8 border-4 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-lg font-semibold text-gray-900">Gathering Market Data and Professional Insights</p>
                     </div>
-                    <p className="text-center text-gray-500 mt-3">
-                      We're analyzing auction market data to provide accurate insights about your item's value.
+                    <p className="text-center text-gray-600 mt-4 leading-relaxed">
+                      Our system is analyzing auction records and market trends to provide comprehensive insights about your artwork's value.
                     </p>
                   </div>
                 )}
