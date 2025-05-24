@@ -438,4 +438,45 @@ This project uses Vite, which relies on Rollup for bundling. Rollup has platform
 
 This setup ensures that local development on Windows works smoothly while deployments on Linux-based environments like Netlify also function correctly without installation errors.
 
+## Cloud Run Deployment
+
+The screener frontend is now deployed on **Google Cloud Run** using the provided `Dockerfile`.
+
+### Build & Deploy Steps (summary)
+1. Cloud Build triggers on `main` branch push.
+2. `Dockerfile` builds production image (multi-stage).
+3. Image pushed to Artifact Registry.
+4. Cloud Run service `screener-page-module` is updated with new revision.
+5. Health probe hits `/health` to verify readiness.
+6. Traffic is automatically routed to the new revision.
+
+Service URL (production):
+```
+https://screener-page-module-<PROJECT_ID>.run.app
+```
+
+### Local Docker Run
+```bash
+# Build and run locally
+docker build -t screener-frontend .
+docker run -p 8080:8080 screener-frontend
+```
+
+### Environment variables
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `PORT`   | HTTP port listened by `server.js` | `8080` |
+| `NODE_ENV` | Runtime mode | `production` |
+| `VITE_API_URL` | Backend API base URL | must be provided at build or run |
+
+## Known Migration Errors & Fixes (Bill of Errors)
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `ReferenceError: Cannot access '_' before initialization` | Minified global accessed early in bundle | Added placeholder globals in `src/main.tsx` |
+| `Cannot find module @rollup/rollup-win32-x64-msvc` on Windows | Optional Rollup binary not installed | Added to `optionalDependencies`; delete `node_modules` & reinstall |
+| `npm ERR! EBADPLATFORM` on Cloud Run build | Windows-only Rollup binary attempted on Linux | Moved package to `optionalDependencies` so Linux skips it |
+| `SyntaxError: missing ) after argument list` at `server.js:49` | Object literal method parsing failed on Node 18 | Replaced inline object with `staticOptions` constant |
+
+These fixes are already incorporated in the repository; keep this table as a reference for future regressions.
+
 This documentation covers all backend endpoints, data structures, and API integrations found in the screener-page-module codebase.
